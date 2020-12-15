@@ -68,29 +68,18 @@ public class PlayerCam : MonoBehaviour
         float camRotY = transform.localEulerAngles.y + mouseX;
         //These values contain the literal rotation value of the camera to be applied.
         Vector3 mouseMovement = new Vector3(camRotX, camRotY, transform.localEulerAngles.z);
-
-        if(!camShift)
-        {
-            firstPersonHead = player.transform.position;
-            transform.position = firstPersonHead;
-            transform.localEulerAngles = mouseMovement;
-            player.transform.localEulerAngles = new Vector3(player.transform.localEulerAngles.x, transform.localEulerAngles.y, player.transform.localEulerAngles.z);
-            
-            //When scripting, the above 'transform.xyz' is referencing the TRANSFORM of the GAMEOBJECT this script is attached to;
-            //no need for getComponent in this case. Except for rotating the player; this requires our aforementioned gameobject assignation
-            //from the start method.
-
-            //Sets this GAMEOBJECT's TRANSFORM component's position to the previously declared firstPersonHead
-            //Sets this GAMEOBJECT's TRANSFORM component's rotation in local euler angles (AKA 0>360 deg. on 3 axis)
-            //Sets the player GAMEOBJECT's TRANSFORM component's rotation in local euler angles (AKA 0>360 deg. on 3 axis)
-        }
-
-        else
-        {
-            transform.RotateAround(thirdPersonTarget, Vector3.up, mouseX);
-            //Ignore this im not done yet. But basically I want to set it to switch between first and third person
-            //cameras. Probably going to remove this feature later.
-        }
+        firstPersonHead = player.transform.position;
+        transform.position = firstPersonHead;
+        transform.localEulerAngles = mouseMovement;
+        player.transform.localEulerAngles = new Vector3(player.transform.localEulerAngles.x, transform.localEulerAngles.y, player.transform.localEulerAngles.z);
+        
+        //When scripting, the above 'transform.xyz' is referencing the TRANSFORM of the GAMEOBJECT this script is attached to;
+        //no need for getComponent in this case. Except for rotating the player; this requires our aforementioned gameobject assignation
+        //from the start method.
+        //Sets this GAMEOBJECT's TRANSFORM component's position to the previously declared firstPersonHead
+        //Sets this GAMEOBJECT's TRANSFORM component's rotation in local euler angles (AKA 0>360 deg. on 3 axis)
+        //Sets the player GAMEOBJECT's TRANSFORM component's rotation in local euler angles (AKA 0>360 deg. on 3 axis)
+        
     }
     
 
