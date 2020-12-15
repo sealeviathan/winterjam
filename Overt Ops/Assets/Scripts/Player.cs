@@ -12,14 +12,21 @@ public class Player : MonoBehaviour
     public float sensitivity = 35f;
     public LayerMask _layerMask;
     Rigidbody rb;
+
     bool grounded;
+
     float wallCheckDist;
+
     Vector3 footArea;
     Vector3 bodArea;
     Vector3 headArea;
+
     int jumpsLeft = 2;
     int maxJumpsLeft = 2;
+
     public float collisionRadius = 3f;
+
+    float crouchScale = 0.5f;
     // Start is called before the first frame update
     void Start()
     {
@@ -37,6 +44,7 @@ public class Player : MonoBehaviour
         {
             Jump(jumpSpeed);
         }
+        CrouchCheck();
         
         
     }
@@ -139,6 +147,20 @@ public class Player : MonoBehaviour
             }
         }
         
+    }
+    //Being made specifically for a capsule player.
+    void CrouchCheck()
+    {
+        if(Input.GetButton("Crouch"))
+        {
+            //crouch
+            transform.localScale = Vector3.up * crouchScale;
+        }
+        else
+        {
+            //uncrouch
+            transform.localScale = Vector3.one;
+        }
     }
     bool CheckSideArray(Vector3[] origins, Vector3 direction)
     {
