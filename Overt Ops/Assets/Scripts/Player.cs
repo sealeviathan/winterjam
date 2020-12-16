@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using UnityEngine;
 
 [RequireComponent(typeof(Feet))]
-public class Player : MonoBehaviour
+public class Player : MonoBehaviour, IKillable, IDamageable
 {
     
-    public int health = 10;
+    public int health {get; set;}
+    public int maxHealth {get; set;}
     public float speed = 10.0f;
     public float sprintSpeedMult = 1.5f;
     public float crouchSpeedMult = 0.75f;
@@ -42,11 +43,16 @@ public class Player : MonoBehaviour
     void Start()
     {
         wallCheckDist = transform.lossyScale.x + transform.lossyScale.z / collisionRadius;
+        
         rb = GetComponent<Rigidbody>();
+        cam = GameObject.FindGameObjectWithTag("MainCamera").GetComponent<PlayerCam>();
+
         sprintSpeed = sprintSpeedMult * speed;
         normalSpeed = speed;
         crouchSpeed = crouchSpeedMult * speed;
-        cam = GameObject.FindGameObjectWithTag("MainCamera").GetComponent<PlayerCam>();
+        
+        health = 100;
+        maxHealth = health;
     }
 
     // Update is called once per frame
@@ -131,10 +137,10 @@ public class Player : MonoBehaviour
         health -= amount;
         if(health < 0)
         {
-            Die();
+            Kill();
         }
     }
-    private void Die()
+    public void Kill()
     {
         //Self explanatory
         Destroy(gameObject);
