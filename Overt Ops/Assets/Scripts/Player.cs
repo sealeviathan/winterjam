@@ -8,6 +8,11 @@ public class Player : MonoBehaviour
     
     public int health = 10;
     public float speed = 10.0f;
+    public float sprintSpeedMult = 1.5f;
+    public float crouchSpeedMult = 0.75f;
+    float sprintSpeed;
+    float normalSpeed;
+    float crouchSpeed;
     public float jumpSpeed = 5f;
     public float sensitivity = 35f;
     public LayerMask _layerMask;
@@ -23,16 +28,25 @@ public class Player : MonoBehaviour
 
     int jumpsLeft = 2;
     int maxJumpsLeft = 2;
+    PlayerCam cam;
 
     public float collisionRadius = 3f;
 
-    float crouchScale = 0.5f;
+    float moveX;
+    float moveY;
+    public float MoveY{get{return moveY;} set{moveY = value;}}
+    public float runBobRate = 5f;
+
+    float crouchScale = 0.75f;
     // Start is called before the first frame update
     void Start()
     {
-        
         wallCheckDist = transform.lossyScale.x + transform.lossyScale.z / collisionRadius;
         rb = GetComponent<Rigidbody>();
+        sprintSpeed = sprintSpeedMult * speed;
+        normalSpeed = speed;
+        crouchSpeed = crouchSpeedMult * speed;
+        cam = GameObject.FindGameObjectWithTag("MainCamera").GetComponent<PlayerCam>();
     }
 
     // Update is called once per frame
@@ -45,6 +59,7 @@ public class Player : MonoBehaviour
             Jump(jumpSpeed);
         }
         CrouchCheck();
+        SprintCheck();
         
         
     }
@@ -60,8 +75,8 @@ public class Player : MonoBehaviour
         areas[1] = bodArea;
         areas[2] = headArea;
         
-        float moveX = Input.GetAxis("Horizontal") * Time.deltaTime * speed;
-        float moveY = Input.GetAxis("Vertical") * Time.deltaTime * speed;
+        moveX = Input.GetAxis("Horizontal") * Time.deltaTime * speed;
+        moveY = Input.GetAxis("Vertical") * Time.deltaTime * speed;
         //Above moveX and moveY are the -1>1 values from Input.GetAxis() multiplied by player speed and then by the 
         //Frame update stabilizer deltaTime. Always multiply movement by deltaTime.
         bool straightOn = CheckSideArray(areas, transform.forward);
@@ -151,15 +166,37 @@ public class Player : MonoBehaviour
     //Being made specifically for a capsule player.
     void CrouchCheck()
     {
-        if(Input.GetButton("Crouch"))
+        if(Input.GetButtonDown("Crouch"))
+        {
+            float drop = crouchScale / 2;
+            transform.position = new Vector3(transform.position.x, transform.position.y - drop, transform.position.z);
+            speed = crouchSpeed;
+        }
+        else if(Input.GetButton("Crouch"))
         {
             //crouch
-            transform.localScale = Vector3.up * crouchScale;
+            speed = crouchSpeed;
+            transform.localScale = new Vector3(transform.localScale.x, crouchScale, transform.localScale.z);
+            
         }
-        else
+        else if(Input.GetButtonUp("Crouch"))
         {
             //uncrouch
             transform.localScale = Vector3.one;
+            speed = normalSpeed;
+        }
+    }
+    void SprintCheck()
+    {
+        if(Input.GetButton("Sprint"))
+        {
+            speed = sprintSpeed;
+            cam.HeadBob(runBobRate, 1.5f);
+        }
+        else if(Input.GetButtonUp("Sprint"))
+        {
+            speed = normalSpeed;
+            cam.headHeight = cam.BaseHeadHeight;
         }
     }
     bool CheckSideArray(Vector3[] origins, Vector3 direction)

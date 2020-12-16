@@ -8,11 +8,15 @@ public class PlayerCam : MonoBehaviour
     Vector3 thirdPersonTarget;
     Vector3 firstPersonHead;
     public float headHeight;
+    float baseHeadHeight;
+    public float BaseHeadHeight{get{return baseHeadHeight;}}
     public bool camShift = false;
 
     public float mouseSens = 100f;
     public float camSmoothing = 10f;
     float rotX = 0;
+
+    Player _Player;
     void Start()
     {
         //Instead of choosing target in the inspector, find whatever object is tagged 'Player' and set it
@@ -20,6 +24,8 @@ public class PlayerCam : MonoBehaviour
         player = GameObject.FindGameObjectWithTag("Player");
         rotX = 0;
         transform.localEulerAngles = new Vector3(0, transform.localEulerAngles.y, transform.localEulerAngles.z);
+        baseHeadHeight = headHeight;
+        _Player = player.GetComponent<Player>();
     }
 
 
@@ -68,7 +74,6 @@ public class PlayerCam : MonoBehaviour
         float camRotY = transform.localEulerAngles.y + mouseX;
         //These values contain the literal rotation value of the camera to be applied.
         Vector3 mouseMovement = new Vector3(camRotX, camRotY, transform.localEulerAngles.z);
-        firstPersonHead = player.transform.position;
         transform.position = firstPersonHead;
         transform.localEulerAngles = mouseMovement;
         player.transform.localEulerAngles = new Vector3(player.transform.localEulerAngles.x, transform.localEulerAngles.y, player.transform.localEulerAngles.z);
@@ -80,6 +85,11 @@ public class PlayerCam : MonoBehaviour
         //Sets this GAMEOBJECT's TRANSFORM component's rotation in local euler angles (AKA 0>360 deg. on 3 axis)
         //Sets the player GAMEOBJECT's TRANSFORM component's rotation in local euler angles (AKA 0>360 deg. on 3 axis)
         
+    }
+
+    public void HeadBob(float rate, float bobAmount)
+    {
+        headHeight = bobAmount * Mathf.Sin(Time.time * rate) * _Player.MoveY;
     }
     
 
