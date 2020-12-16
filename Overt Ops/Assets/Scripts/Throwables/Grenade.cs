@@ -7,12 +7,14 @@ public class Grenade : MonoBehaviour, IExplodeable
     
     public int radius {get; set;}
     public int damage {get; set;}
+    public float force {get; set;}
     public float fuseTime = 3f;
     // Start is called before the first frame update
     void Start()
     {
-        radius = 3;
+        radius = 6;
         damage = 25;
+        force = 350f;
     }
 
     // Update is called once per frame
@@ -27,22 +29,31 @@ public class Grenade : MonoBehaviour, IExplodeable
     }
     public void Explode()
     {
-        DamageInArea(radius, damage);
+        DamageInArea(radius, damage, force);
         Destroy(gameObject);
     }
-    public void DamageInArea(int _radius, int _damage)
+    public void Kill()
+    {
+        Explode();
+    }
+    public void DamageInArea(int _radius, int _damage, float _force)
     {
         Collider[] hits = Physics.OverlapSphere(transform.position, _radius);
         foreach(Collider hit in hits)
         {
-            
-            if()
+            if(!hit.gameObject.isStatic)
             {
-                Debug.Log(" there is a Damageable");
-
-                damaged.Damage(_damage);
-                Debug.Log(damaged.health);
-
+                Rigidbody hitRB = hit.gameObject.GetComponent<Rigidbody>();
+                if(hitRB != null)
+                {
+                    hitRB.AddExplosionForce(_force,transform.position,_radius);
+                    hitRB.AddExplosionForce(0,transform.position,_radius,_force);
+                }
+                IDamageable damaged = hit.gameObject.GetComponent<IDamageable>();
+                if(damaged != null)
+                {
+                    damaged.Damage(_damage);
+                }
             }
         }
     }

@@ -20,6 +20,7 @@ public class Player : MonoBehaviour, IKillable, IDamageable
     Rigidbody rb;
 
     bool grounded;
+    bool alive = true;
 
     float wallCheckDist;
 
@@ -43,7 +44,7 @@ public class Player : MonoBehaviour, IKillable, IDamageable
     void Start()
     {
         wallCheckDist = transform.lossyScale.x + transform.lossyScale.z / collisionRadius;
-        
+
         rb = GetComponent<Rigidbody>();
         cam = GameObject.FindGameObjectWithTag("MainCamera").GetComponent<PlayerCam>();
 
@@ -53,75 +54,82 @@ public class Player : MonoBehaviour, IKillable, IDamageable
         
         health = 100;
         maxHealth = health;
+        alive = true;
     }
 
     // Update is called once per frame
     void Update()
     {   
-        //Update is good for getting player input. There are multiple ways to track keypresses and axis, but the input
-        //manager is best in this case.
-        if(Input.GetButtonDown("Jump"))
+        if(alive)
         {
-            Jump(jumpSpeed);
+            //Update is good for getting player input. There are multiple ways to track keypresses and axis, but the input
+            //manager is best in this case.
+            if(Input.GetButtonDown("Jump"))
+            {
+                Jump(jumpSpeed);
+            }
+            CrouchCheck();
+            SprintCheck();
         }
-        CrouchCheck();
-        SprintCheck();
         
         
     }
     private void FixedUpdate()
     {
-        //footArea is used with the below collision checking. determines where the character should raycast from to check
-        //if they are hitting a wall.
-        footArea = new Vector3(transform.position.x, transform.position.y - transform.lossyScale.y/1.5f, transform.position.z);
-        bodArea = transform.position;
-        headArea = new Vector3(transform.position.x, transform.position.y + transform.lossyScale.y/1.5f, transform.position.z);
-        Vector3[] areas = new Vector3[3];
-        areas[0] = footArea;
-        areas[1] = bodArea;
-        areas[2] = headArea;
-        
-        moveX = Input.GetAxis("Horizontal") * Time.deltaTime * speed;
-        moveY = Input.GetAxis("Vertical") * Time.deltaTime * speed;
-        //Above moveX and moveY are the -1>1 values from Input.GetAxis() multiplied by player speed and then by the 
-        //Frame update stabilizer deltaTime. Always multiply movement by deltaTime.
-        bool straightOn = CheckSideArray(areas, transform.forward);
-        bool rightOn = CheckSideArray(areas, transform.right);
-        bool leftOn = CheckSideArray(areas, -transform.right);
-        bool backwardsOn = CheckSideArray(areas, -transform.forward);
-        
-        //This whole section basically checks if the player is trying to move into a wall. If they are, stop their movement in that axis.
-        if(straightOn)
+        if(alive)
         {
-            Debug.Log("Straighton");
-            if(moveY > 0)
+            //footArea is used with the below collision checking. determines where the character should raycast from to check
+            //if they are hitting a wall.
+            footArea = new Vector3(transform.position.x, transform.position.y - transform.lossyScale.y/1.5f, transform.position.z);
+            bodArea = transform.position;
+            headArea = new Vector3(transform.position.x, transform.position.y + transform.lossyScale.y/1.5f, transform.position.z);
+            Vector3[] areas = new Vector3[3];
+            areas[0] = footArea;
+            areas[1] = bodArea;
+            areas[2] = headArea;
+
+            moveX = Input.GetAxis("Horizontal") * Time.deltaTime * speed;
+            moveY = Input.GetAxis("Vertical") * Time.deltaTime * speed;
+            //Above moveX and moveY are the -1>1 values from Input.GetAxis() multiplied by player speed and then by the 
+            //Frame update stabilizer deltaTime. Always multiply movement by deltaTime.
+            bool straightOn = CheckSideArray(areas, transform.forward);
+            bool rightOn = CheckSideArray(areas, transform.right);
+            bool leftOn = CheckSideArray(areas, -transform.right);
+            bool backwardsOn = CheckSideArray(areas, -transform.forward);
+
+            //This whole section basically checks if the player is trying to move into a wall. If they are, stop their movement in that axis.
+            if(straightOn)
             {
-                moveY = 0;
-                Debug.Log("Straighton stop");
+                Debug.Log("Straighton");
+                if(moveY > 0)
+                {
+                    moveY = 0;
+                    Debug.Log("Straighton stop");
+                }
             }
-        }
-        if(rightOn)
-        {
-            if(moveX > 0)
+            if(rightOn)
             {
-                moveX = 0;
+                if(moveX > 0)
+                {
+                    moveX = 0;
+                }
             }
-        }
-        if(leftOn)
-        {
-            if(moveX < 0)
+            if(leftOn)
             {
-                moveX = 0;
+                if(moveX < 0)
+                {
+                    moveX = 0;
+                }
             }
-        }
-        if(backwardsOn)
-        {
-            if(moveY < 0)
+            if(backwardsOn)
             {
-                moveY = 0;
+                if(moveY < 0)
+                {
+                    moveY = 0;
+                }
             }
+            rb.MovePosition(transform.position + transform.forward*moveY + transform.right*moveX);
         }
-        rb.MovePosition(transform.position + transform.forward*moveY + transform.right*moveX);
     }
     public bool Grounded
     {
@@ -143,7 +151,8 @@ public class Player : MonoBehaviour, IKillable, IDamageable
     public void Kill()
     {
         //Self explanatory
-        Destroy(gameObject);
+        alive = false;
+        rb.constraints = RigidbodyConstraints.None;
     }
 
     void Jump(float jumpForce)
