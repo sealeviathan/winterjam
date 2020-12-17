@@ -2,58 +2,30 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Grenade : MonoBehaviour, IExplodeable
+public class Grenade : Explosive
 {
-    
-    public int radius {get; set;}
-    public int damage {get; set;}
-    public float force {get; set;}
     public float fuseTime = 3f;
-    // Start is called before the first frame update
-    void Start()
-    {
-        radius = 6;
-        damage = 25;
-        force = 350f;
-    }
+    bool dummy = false;
 
-    // Update is called once per frame
-    void Update()
+    private void Start()
     {
-        fuseTime-=Time.deltaTime;
-        if(fuseTime < 0)
+        health = 20;
+        dummy = false;
+        if(fuseTime == 0)
         {
-            Debug.Log("BOOM");
-            Explode();
+            //dummy nade
+            dummy = true;
         }
     }
-    public void Explode()
+    void Update()
     {
-        DamageInArea(radius, damage, force);
-        Destroy(gameObject);
-    }
-    public void Kill()
-    {
-        Explode();
-    }
-    public void DamageInArea(int _radius, int _damage, float _force)
-    {
-        Collider[] hits = Physics.OverlapSphere(transform.position, _radius);
-        foreach(Collider hit in hits)
+        if(!dummy)
         {
-            if(!hit.gameObject.isStatic)
+            fuseTime-=Time.deltaTime;
+            if(fuseTime < 0)
             {
-                Rigidbody hitRB = hit.gameObject.GetComponent<Rigidbody>();
-                if(hitRB != null)
-                {
-                    hitRB.AddExplosionForce(_force,transform.position,_radius);
-                    hitRB.AddExplosionForce(0,transform.position,_radius,_force);
-                }
-                IDamageable damaged = hit.gameObject.GetComponent<IDamageable>();
-                if(damaged != null)
-                {
-                    damaged.Damage(_damage);
-                }
+                Debug.Log("BOOM");
+                Explode();
             }
         }
     }
