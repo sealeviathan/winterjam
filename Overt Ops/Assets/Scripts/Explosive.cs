@@ -13,6 +13,7 @@ public class Explosive : MonoBehaviour, IDamageable, IKillable
     
     public void Explode()
     {
+        gameObject.SetActive(false);
         DamageInArea(radius, damage, force);
         Destroy(gameObject);
     }

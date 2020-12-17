@@ -89,7 +89,7 @@ public class PlayerCam : MonoBehaviour
 
     public void HeadBob(float rate, float bobAmount)
     {
-        headHeight = bobAmount * Mathf.Sin(Time.time * rate) * _Player.MoveY;
+        headHeight = bobAmount * Mathf.Sin(Time.time * rate) * _Player.MoveY + baseHeadHeight;
     }
     
 
