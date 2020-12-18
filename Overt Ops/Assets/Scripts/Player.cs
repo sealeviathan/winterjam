@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-[RequireComponent(typeof(Feet))]
 public class Player : MonoBehaviour, IKillable, IDamageable
 {
     
@@ -19,7 +18,8 @@ public class Player : MonoBehaviour, IKillable, IDamageable
     public LayerMask _layerMask;
     Rigidbody rb;
 
-    bool grounded;
+    public float footRadius = 1f;
+    public float footDistance = 0.5f;
     bool alive = true;
 
     float wallCheckDist;
@@ -28,8 +28,8 @@ public class Player : MonoBehaviour, IKillable, IDamageable
     Vector3 bodArea;
     Vector3 headArea;
 
-    int jumpsLeft = 2;
-    int maxJumpsLeft = 2;
+    int jumpsLeft = 0;
+    int maxJumpsLeft;
     PlayerCam cam;
 
     public float collisionRadius = 3f;
@@ -38,6 +38,9 @@ public class Player : MonoBehaviour, IKillable, IDamageable
     float moveY;
     public float MoveY{get{return moveY;} set{moveY = value;}}
     public float runBobRate = 5f;
+
+    float jumpCooldown = 0f;
+    public float maxJumpCooldown = .25f;
 
     float crouchScale = 0.75f;
     // Start is called before the first frame update
@@ -54,6 +57,7 @@ public class Player : MonoBehaviour, IKillable, IDamageable
         
         health = 100;
         maxHealth = health;
+        maxJumpsLeft = jumpsLeft;
         alive = true;
     }
 
@@ -62,6 +66,10 @@ public class Player : MonoBehaviour, IKillable, IDamageable
     {   
         if(alive)
         {
+            if(jumpCooldown > 0)
+            {
+                jumpCooldown -= Time.deltaTime;
+            }
             //Update is good for getting player input. There are multiple ways to track keypresses and axis, but the input
             //manager is best in this case.
             if(Input.GetButtonDown("Jump"))
@@ -131,13 +139,6 @@ public class Player : MonoBehaviour, IKillable, IDamageable
             rb.MovePosition(transform.position + transform.forward*moveY + transform.right*moveX);
         }
     }
-    public bool Grounded
-    {
-        //Simple C# variable public getter setter, adds level of distinction between the class
-        //data for protection.
-        get{return grounded;}
-        set{grounded = value;}
-    }
 
     public void Damage(int amount)
     {
@@ -154,18 +155,31 @@ public class Player : MonoBehaviour, IKillable, IDamageable
         alive = false;
         rb.constraints = RigidbodyConstraints.None;
     }
+    bool Grounded()
+    {
+        Collider[] hits = Physics.OverlapSphere(footArea, footRadius, _layerMask);
+        if(hits.Length > 0)
+        {
+            return true;
+        }
+        return false;
+    }
 
     void Jump(float jumpForce)
     {
-        //Uses Feet.cs and a trigger attached to the players feet area to determine if they are on the ground or not.
+        
         //You can change max jumps if you want, it's with regard to air jumps only.
-        if(grounded)
+        if(jumpCooldown <= 0)
         {
-            //Im on the ground
-            jumpsLeft = maxJumpsLeft;
-            rb.velocity = new Vector3(rb.velocity.x, rb.velocity.y + jumpForce, rb.velocity.z);
-            //A good way to move rigidbody characters is by directly modifying their velocity. This gives
-            //The most responsive web des- er I mean the most responsive character controller.
+            if(Grounded())
+            {
+                //Im on the ground
+                jumpCooldown = maxJumpCooldown;
+                jumpsLeft = maxJumpsLeft;
+                rb.velocity = new Vector3(rb.velocity.x, rb.velocity.y + jumpForce, rb.velocity.z);
+                //A good way to move rigidbody characters is by directly modifying their velocity. This gives
+                //The most responsive web des- er I mean the most responsive character controller.
+            }
         }
         else
         {
