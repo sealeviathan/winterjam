@@ -77,6 +77,7 @@ public class PlayerCam : MonoBehaviour
         transform.position = firstPersonHead;
         transform.localEulerAngles = mouseMovement;
         player.transform.localEulerAngles = new Vector3(player.transform.localEulerAngles.x, transform.localEulerAngles.y, player.transform.localEulerAngles.z);
+        _Player.SetHandPitch(-rotX);
         
         //When scripting, the above 'transform.xyz' is referencing the TRANSFORM of the GAMEOBJECT this script is attached to;
         //no need for getComponent in this case. Except for rotating the player; this requires our aforementioned gameobject assignation

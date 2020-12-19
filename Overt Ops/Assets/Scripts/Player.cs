@@ -28,6 +28,9 @@ public class Player : MonoBehaviour, IKillable, IDamageable
     Vector3 bodArea;
     Vector3 headArea;
 
+    Transform hand;
+    float baseHandHeight;
+
     int jumpsLeft = 0;
     int maxJumpsLeft;
     PlayerCam cam;
@@ -38,6 +41,7 @@ public class Player : MonoBehaviour, IKillable, IDamageable
     float moveY;
     public float MoveY{get{return moveY;} set{moveY = value;}}
     public float runBobRate = 5f;
+    public float headBobAmount = 1f;
 
     float jumpCooldown = 0f;
     public float maxJumpCooldown = .25f;
@@ -59,6 +63,9 @@ public class Player : MonoBehaviour, IKillable, IDamageable
         maxHealth = health;
         maxJumpsLeft = jumpsLeft;
         alive = true;
+
+        hand = gameObject.transform.Find("ItemMount");
+        baseHandHeight = hand.transform.localPosition.y;
     }
 
     // Update is called once per frame
@@ -220,7 +227,7 @@ public class Player : MonoBehaviour, IKillable, IDamageable
         if(Input.GetButton("Sprint"))
         {
             speed = sprintSpeed;
-            cam.HeadBob(runBobRate, 1.5f);
+            cam.HeadBob(runBobRate, headBobAmount);
         }
         else if(Input.GetButtonUp("Sprint"))
         {
@@ -241,6 +248,11 @@ public class Player : MonoBehaviour, IKillable, IDamageable
         }
         return count > (float)origins.Length/2;
         
+    }
+    public void SetHandPitch(float angle)
+    {
+        hand.localEulerAngles = new Vector3(angle, hand.localEulerAngles.y, hand.localEulerAngles.z);
+        hand.transform.position = new Vector3(hand.transform.position.x, transform.position.y + baseHandHeight + angle/100, hand.transform.position.z);
     }
     
 }
