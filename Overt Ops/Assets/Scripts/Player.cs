@@ -10,6 +10,7 @@ public class Player : MonoBehaviour, IKillable, IDamageable
     public float speed = 10.0f;
     public float sprintSpeedMult = 1.5f;
     public float crouchSpeedMult = 0.75f;
+    public float slopeDownforceMult = 1f;
     float sprintSpeed;
     float normalSpeed;
     float crouchSpeed;
@@ -17,25 +18,39 @@ public class Player : MonoBehaviour, IKillable, IDamageable
     public float sensitivity = 35f;
     public LayerMask _layerMask;
     Rigidbody rb;
+    CapsuleCollider capCol;
 
     public float footRadius = 1f;
     public float footDistance = 0.5f;
     bool alive = true;
+    bool onSlope = false;
+    bool grounded = false;
+    bool blocked = false;
 
     float wallCheckDist;
+    float baseHandHeight;
+    public float collisionRadius = 1f;
+    public float slopeCheckDist = 0.3f;
+    public float maxSlope = 45f;
+    Vector3 footAngle;
 
     Vector3 footArea;
     Vector3 bodArea;
     Vector3 headArea;
 
+    Vector3 lastPos;
+
+    Vector3 horizontalLocomotion
+    {
+        get{return new Vector3(transform.position.x - lastPos.x, 0, transform.position.z - lastPos.z);}
+    }
     Transform hand;
-    float baseHandHeight;
+    
 
     int jumpsLeft = 0;
     int maxJumpsLeft;
     PlayerCam cam;
 
-    public float collisionRadius = 3f;
 
     float moveX;
     float moveY;
@@ -47,10 +62,11 @@ public class Player : MonoBehaviour, IKillable, IDamageable
     public float maxJumpCooldown = .25f;
 
     float crouchScale = 0.75f;
+    
     // Start is called before the first frame update
     void Start()
     {
-        wallCheckDist = transform.lossyScale.x + transform.lossyScale.z / collisionRadius;
+        wallCheckDist = (transform.lossyScale.x + transform.lossyScale.z)/2 * collisionRadius;
 
         rb = GetComponent<Rigidbody>();
         cam = GameObject.FindGameObjectWithTag("MainCamera").GetComponent<PlayerCam>();
@@ -66,6 +82,9 @@ public class Player : MonoBehaviour, IKillable, IDamageable
 
         hand = gameObject.transform.Find("ItemMount");
         baseHandHeight = hand.transform.localPosition.y;
+
+        footAngle = Vector3.zero;
+        capCol = GetComponent<CapsuleCollider>();
     }
 
     // Update is called once per frame
@@ -93,57 +112,24 @@ public class Player : MonoBehaviour, IKillable, IDamageable
     {
         if(alive)
         {
-            //footArea is used with the below collision checking. determines where the character should raycast from to check
-            //if they are hitting a wall.
-            footArea = new Vector3(transform.position.x, transform.position.y - transform.lossyScale.y/1.5f, transform.position.z);
-            bodArea = transform.position;
-            headArea = new Vector3(transform.position.x, transform.position.y + transform.lossyScale.y/1.5f, transform.position.z);
-            Vector3[] areas = new Vector3[3];
-            areas[0] = footArea;
-            areas[1] = bodArea;
-            areas[2] = headArea;
+            //NOTE: ?: ternary operator:
+            //e.g: var foo = if condition ? valueIfTrue:elseValue;
+
+            grounded = Grounded();
+            footAngle = GetFloorAngleMagnitude();
+            onSlope = footAngle.y != 0 ? true:false;
+            blocked = CheckPlayerBlocked(horizontalLocomotion);
+
 
             moveX = Input.GetAxis("Horizontal") * Time.deltaTime * speed;
             moveY = Input.GetAxis("Vertical") * Time.deltaTime * speed;
+
+            
             //Above moveX and moveY are the -1>1 values from Input.GetAxis() multiplied by player speed and then by the 
             //Frame update stabilizer deltaTime. Always multiply movement by deltaTime.
-            bool straightOn = CheckSideArray(areas, transform.forward);
-            bool rightOn = CheckSideArray(areas, transform.right);
-            bool leftOn = CheckSideArray(areas, -transform.right);
-            bool backwardsOn = CheckSideArray(areas, -transform.forward);
 
-            //This whole section basically checks if the player is trying to move into a wall. If they are, stop their movement in that axis.
-            if(straightOn)
-            {
-                Debug.Log("Straighton");
-                if(moveY > 0)
-                {
-                    moveY = 0;
-                    Debug.Log("Straighton stop");
-                }
-            }
-            if(rightOn)
-            {
-                if(moveX > 0)
-                {
-                    moveX = 0;
-                }
-            }
-            if(leftOn)
-            {
-                if(moveX < 0)
-                {
-                    moveX = 0;
-                }
-            }
-            if(backwardsOn)
-            {
-                if(moveY < 0)
-                {
-                    moveY = 0;
-                }
-            }
             rb.MovePosition(transform.position + transform.forward*moveY + transform.right*moveX);
+            lastPos = transform.position;
         }
     }
 
@@ -167,8 +153,10 @@ public class Player : MonoBehaviour, IKillable, IDamageable
         Collider[] hits = Physics.OverlapSphere(footArea, footRadius, _layerMask);
         if(hits.Length > 0)
         {
+            grounded = true;
             return true;
         }
+        grounded = false;
         return false;
     }
 
@@ -178,7 +166,7 @@ public class Player : MonoBehaviour, IKillable, IDamageable
         //You can change max jumps if you want, it's with regard to air jumps only.
         if(jumpCooldown <= 0)
         {
-            if(Grounded())
+            if(grounded)
             {
                 //Im on the ground
                 jumpCooldown = maxJumpCooldown;
@@ -235,24 +223,130 @@ public class Player : MonoBehaviour, IKillable, IDamageable
             cam.headHeight = cam.BaseHeadHeight;
         }
     }
-    bool CheckSideArray(Vector3[] origins, Vector3 direction)
+    bool CheckSideArray(Vector3[] origins, Vector3 direction, out bool[] boolHits, out RaycastHit[] rayHits)
     {
         //Check an array of origins when raycasting, e.g; top middle bottom. True if at least half collide.
+        int maxSize = origins.Length;
+
         short count = 0;
+        short index = 0;
+        boolHits = new bool[maxSize];
+        rayHits = new RaycastHit[maxSize];
         foreach(Vector3 origin in origins)
         {
-            if(Physics.Raycast(origin, direction, wallCheckDist, _layerMask))
+            RaycastHit hit;
+            boolHits[index] = false;
+            if(Physics.Raycast(origin, direction, out hit, wallCheckDist, _layerMask))
             {
+                boolHits[index] = true;
+                rayHits[index] = hit;
                 count++;
             }
+            index++;
         }
-        return count > (float)origins.Length/2;
+        if(grounded)
+        {
+            return count >= 1;
+        }
+        else
+        {
+            return count > 0;
+        }
         
+    }
+    /// <summary> returns true if there is something in the way of said direction of the player, else false </summary>
+    bool CheckPlayerBlocked(Vector3 direction)
+    {
+        //Choose your origins here
+        footArea = new Vector3(transform.position.x, transform.position.y - transform.lossyScale.y/1.5f, transform.position.z);
+        bodArea = transform.position;
+        headArea = new Vector3(transform.position.x, transform.position.y + transform.lossyScale.y/1.5f, transform.position.z);
+        Vector3[] areas = new Vector3[3];
+        areas[0] = footArea;
+        areas[1] = bodArea;
+        areas[2] = headArea;
+        //Done with choosing origins, now logic
+        bool[] boolHits;
+        RaycastHit[] rayHits;
+        
+        bool inLocomotionPath = CheckSideArray(areas, direction, out boolHits, out rayHits);
+        //This whole section basically checks if the player is trying to move into a wall.
+        //If they are, stop their movement in that axis.
+        if(inLocomotionPath)
+        {
+            if(grounded)
+            {
+                //boolHits[0] should always be the feet!!
+                if(boolHits[0])
+                {
+                    //so this is if my feet hit
+                    if(Helper.AllFalse(boolHits,1,-1))
+                    {
+                        //This is if ONLY my feet hit
+                        int angle = Mathf.CeilToInt(Vector3.Angle(direction, rayHits[0].normal) - 90f);
+                        if(angle < maxSlope)
+                        {
+                            //ultimate step, there is something in my way, im on the ground, its only at my feet, and it isn't
+                            //too steep.
+                            return false;
+                        }
+                        return true;
+                    }
+                    return true;
+                }
+            }
+            return true;
+        }
+        return false;
     }
     public void SetHandPitch(float angle)
     {
         hand.localEulerAngles = new Vector3(angle, hand.localEulerAngles.y, hand.localEulerAngles.z);
         hand.transform.position = new Vector3(hand.transform.position.x, transform.position.y + baseHandHeight + angle/100, hand.transform.position.z);
     }
+    ///<summary>Returns the floor angle vector, but also outs the first point and second point
+    ///used to get that angle, if you want it </summary>
+    Vector3 GetFloorAngleMagnitude(out Vector3 p1, out Vector3 p2)
+    {
+        RaycastHit hit;
+        RaycastHit hit2;
+        p1 = new Vector3();
+        p2 = new Vector3();
+        Vector3 direction = new Vector3(transform.position.x - lastPos.x, 0, transform.position.z - lastPos.z);
+        Vector3 origin2 = transform.position + horizontalLocomotion * capCol.radius;
+        if(Physics.Raycast(transform.position,Vector3.down,out hit,(transform.lossyScale.y/2) + slopeCheckDist,_layerMask))
+        {
+            p1 = hit.point;
+        }
+        if(Physics.Raycast(origin2, Vector3.down, out hit2, slopeCheckDist + 1, _layerMask))
+        {
+            p2 = hit2.point;
+        }
+        Debug.DrawRay(p1, (p2-p1) * 100,Color.red,0.01f);
+        return p2-p1;
+        
+    }
+    ///<summary>Returns the vector of the floor angle</summary>
+    Vector3 GetFloorAngleMagnitude()
+    {
+        RaycastHit hit;
+        RaycastHit hit2;
+        Vector3 p1 = new Vector3();
+        Vector3 p2 = new Vector3();
+        Vector3 direction = new Vector3(transform.position.x - lastPos.x, 0, transform.position.z - lastPos.z);
+        Vector3 origin2 = transform.position + horizontalLocomotion * capCol.radius;
+        if(Physics.Raycast(transform.position,Vector3.down,out hit,(transform.lossyScale.y/2) + slopeCheckDist,_layerMask))
+        {
+            p1 = hit.point;
+        }
+        if(Physics.Raycast(origin2, Vector3.down, out hit2, slopeCheckDist + 1, _layerMask))
+        {
+            p2 = hit2.point;
+        }
+        Debug.DrawRay(p1, (p2-p1) * 100,Color.red,0.01f);
+        return p2-p1;
+        
+    }
+    
     
 }
