@@ -30,7 +30,7 @@ public class Helper : MonoBehaviour
     }
     public static bool AllFalse(bool[] booleans, int start, int end)
     {
-        int maxIndice = booleans.Length;
+        int maxIndice = booleans.Length -1;
         if(end < 0)
             end = maxIndice + end + 1;
         else if(end > maxIndice)

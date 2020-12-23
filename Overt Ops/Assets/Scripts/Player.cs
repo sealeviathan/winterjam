@@ -14,6 +14,7 @@ public class Player : MonoBehaviour, IKillable, IDamageable
     float sprintSpeed;
     float normalSpeed;
     float crouchSpeed;
+    public float airSpeed;
     public float jumpSpeed = 5f;
     public float sensitivity = 35f;
     public LayerMask _layerMask;
@@ -26,12 +27,15 @@ public class Player : MonoBehaviour, IKillable, IDamageable
     bool onSlope = false;
     bool grounded = false;
     bool blocked = false;
+    bool lastGrounded;
 
     float wallCheckDist;
     float baseHandHeight;
     public float collisionRadius = 1f;
     public float slopeCheckDist = 0.3f;
     public float maxSlope = 45f;
+    public int slopeWalkMod = 10;
+    float curFootSlope;
     Vector3 footAngle;
 
     Vector3 footArea;
@@ -40,9 +44,9 @@ public class Player : MonoBehaviour, IKillable, IDamageable
 
     Vector3 lastPos;
 
-    Vector3 horizontalLocomotion
+    Vector3 locomotion
     {
-        get{return new Vector3(transform.position.x - lastPos.x, 0, transform.position.z - lastPos.z);}
+        get{return transform.position-lastPos;}
     }
     Transform hand;
     
@@ -115,21 +119,45 @@ public class Player : MonoBehaviour, IKillable, IDamageable
             //NOTE: ?: ternary operator:
             //e.g: var foo = if condition ? valueIfTrue:elseValue;
 
-            grounded = Grounded();
-            footAngle = GetFloorAngleMagnitude();
-            onSlope = footAngle.y != 0 ? true:false;
-            blocked = CheckPlayerBlocked(horizontalLocomotion);
-
-
             moveX = Input.GetAxis("Horizontal") * Time.deltaTime * speed;
             moveY = Input.GetAxis("Vertical") * Time.deltaTime * speed;
 
-            
+            Vector3 wantedPos = transform.position + transform.forward*moveY + transform.right*moveX;
+            Vector3 tryMoveVector = wantedPos - transform.position;
+
+            grounded = Grounded();
+            footAngle = GetFloorAngleMagnitude(tryMoveVector);
+            onSlope = footAngle.y != 0 ? true:false;
+            blocked = CheckPlayerBlocked(tryMoveVector);
+            if(grounded)
+                Debug.Log("Grounded");
+            if(onSlope)
+                Debug.Log("Onslope");
+            if(blocked)
+                Debug.Log("Blocked");
+            Debug.DrawRay(transform.position, footAngle * 100,Color.red,0.01f);
             //Above moveX and moveY are the -1>1 values from Input.GetAxis() multiplied by player speed and then by the 
             //Frame update stabilizer deltaTime. Always multiply movement by deltaTime.
-
-            rb.MovePosition(transform.position + transform.forward*moveY + transform.right*moveX);
+            if(!blocked)
+            {
+                if(grounded)
+                {
+                    if(onSlope)
+                    {
+                        rb.MovePosition(transform.position + footAngle * slopeWalkMod);
+                    }
+                    else
+                    {
+                        rb.MovePosition(wantedPos);
+                    }
+                }
+            }
+            if(!grounded && lastGrounded == true)
+            {
+                rb.velocity += locomotion * airSpeed;
+            }
             lastPos = transform.position;
+            lastGrounded = grounded;
         }
     }
 
@@ -171,6 +199,8 @@ public class Player : MonoBehaviour, IKillable, IDamageable
                 //Im on the ground
                 jumpCooldown = maxJumpCooldown;
                 jumpsLeft = maxJumpsLeft;
+                onSlope = false;
+                grounded = false;
                 rb.velocity = new Vector3(rb.velocity.x, rb.velocity.y + jumpForce, rb.velocity.z);
                 //A good way to move rigidbody characters is by directly modifying their velocity. This gives
                 //The most responsive web des- er I mean the most responsive character controller.
@@ -306,14 +336,14 @@ public class Player : MonoBehaviour, IKillable, IDamageable
     }
     ///<summary>Returns the floor angle vector, but also outs the first point and second point
     ///used to get that angle, if you want it </summary>
-    Vector3 GetFloorAngleMagnitude(out Vector3 p1, out Vector3 p2)
+    Vector3 GetFloorAngleMagnitude(Vector3 locomotionDir, out Vector3 p1, out Vector3 p2)
     {
         RaycastHit hit;
         RaycastHit hit2;
         p1 = new Vector3();
         p2 = new Vector3();
         Vector3 direction = new Vector3(transform.position.x - lastPos.x, 0, transform.position.z - lastPos.z);
-        Vector3 origin2 = transform.position + horizontalLocomotion * capCol.radius;
+        Vector3 origin2 = transform.position + locomotionDir * capCol.radius;
         if(Physics.Raycast(transform.position,Vector3.down,out hit,(transform.lossyScale.y/2) + slopeCheckDist,_layerMask))
         {
             p1 = hit.point;
@@ -322,19 +352,19 @@ public class Player : MonoBehaviour, IKillable, IDamageable
         {
             p2 = hit2.point;
         }
-        Debug.DrawRay(p1, (p2-p1) * 100,Color.red,0.01f);
+        
         return p2-p1;
         
     }
     ///<summary>Returns the vector of the floor angle</summary>
-    Vector3 GetFloorAngleMagnitude()
+    Vector3 GetFloorAngleMagnitude(Vector3 locomotionDir)
     {
         RaycastHit hit;
         RaycastHit hit2;
         Vector3 p1 = new Vector3();
         Vector3 p2 = new Vector3();
         Vector3 direction = new Vector3(transform.position.x - lastPos.x, 0, transform.position.z - lastPos.z);
-        Vector3 origin2 = transform.position + horizontalLocomotion * capCol.radius;
+        Vector3 origin2 = transform.position + locomotionDir * capCol.radius;
         if(Physics.Raycast(transform.position,Vector3.down,out hit,(transform.lossyScale.y/2) + slopeCheckDist,_layerMask))
         {
             p1 = hit.point;
@@ -343,7 +373,6 @@ public class Player : MonoBehaviour, IKillable, IDamageable
         {
             p2 = hit2.point;
         }
-        Debug.DrawRay(p1, (p2-p1) * 100,Color.red,0.01f);
         return p2-p1;
         
     }
