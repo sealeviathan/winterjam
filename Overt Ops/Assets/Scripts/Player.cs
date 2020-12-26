@@ -35,7 +35,7 @@ public class Player : MonoBehaviour, IKillable, IDamageable
     public float slopeCheckDist = 0.3f;
     public float maxSlope = 45f;
     public int slopeWalkMod = 10;
-    float curFootSlope;
+    int curFootSlope;
     Vector3 footAngle;
 
     Vector3 footArea;
@@ -128,7 +128,13 @@ public class Player : MonoBehaviour, IKillable, IDamageable
             grounded = Grounded();
             footAngle = GetFloorAngleMagnitude(tryMoveVector);
             onSlope = footAngle.y != 0 ? true:false;
-            blocked = CheckPlayerBlocked(tryMoveVector);
+            //Current problem: you will fetching teleport if you touch a straight down edge at a certain angle and velocity.
+            //Possible fix: make onSlope checks more rigid.
+            blocked = CheckPlayerBlocked(tryMoveVector, out curFootSlope);
+            //While blocked technically works, it could be better.
+            //Update to allow wall sliding in the direction of the adjacent angle of trymoveVector and the normal of the
+            //object that is in the way. Also, a single ray wont work, use tryMoveVector as a base, and then assign
+            //A wider range to capture the odd angles.
             if(grounded)
                 Debug.Log("Grounded");
             if(onSlope)
@@ -144,7 +150,8 @@ public class Player : MonoBehaviour, IKillable, IDamageable
                 {
                     if(onSlope)
                     {
-                        rb.MovePosition(transform.position + footAngle * slopeWalkMod);
+                        if(curFootSlope <= maxSlope && curFootSlope >= -maxSlope)
+                            rb.MovePosition(transform.position + footAngle * slopeWalkMod);
                     }
                     else
                     {
@@ -154,10 +161,14 @@ public class Player : MonoBehaviour, IKillable, IDamageable
             }
             if(!grounded && lastGrounded == true)
             {
-                rb.velocity += locomotion * airSpeed;
+                //Forget about velocity, find a way to get a static vector3 of the input when jump was pressed.
+                //While not grounded, set the wanted pos to this, and then use whatever air control checks
+                //and movements to modify that air vector. Will result in less random death.
             }
             lastPos = transform.position;
             lastGrounded = grounded;
+            //Once everything works as it should, work on slimming this class down, outsource some of the built in methods that
+            //Aren't as Player specific.
         }
     }
 
@@ -285,8 +296,9 @@ public class Player : MonoBehaviour, IKillable, IDamageable
         
     }
     /// <summary> returns true if there is something in the way of said direction of the player, else false </summary>
-    bool CheckPlayerBlocked(Vector3 direction)
+    bool CheckPlayerBlocked(Vector3 direction, out int angle)
     {
+        angle = 0;
         //Choose your origins here
         footArea = new Vector3(transform.position.x, transform.position.y - transform.lossyScale.y/1.5f, transform.position.z);
         bodArea = transform.position;
@@ -313,7 +325,7 @@ public class Player : MonoBehaviour, IKillable, IDamageable
                     if(Helper.AllFalse(boolHits,1,-1))
                     {
                         //This is if ONLY my feet hit
-                        int angle = Mathf.CeilToInt(Vector3.Angle(direction, rayHits[0].normal) - 90f);
+                        angle = Mathf.CeilToInt(Vector3.Angle(direction, rayHits[0].normal) - 90f);
                         if(angle < maxSlope)
                         {
                             //ultimate step, there is something in my way, im on the ground, its only at my feet, and it isn't
@@ -375,6 +387,15 @@ public class Player : MonoBehaviour, IKillable, IDamageable
         }
         return p2-p1;
         
+    }
+    Vector3 GetFloorNormal()
+    {
+        RaycastHit hit;
+        if(Physics.Raycast(transform.position, Vector3.down, out hit, slopeCheckDist, _layerMask))
+        {
+            return hit.normal;
+        }
+        return Vector3.zero;
     }
     
     
