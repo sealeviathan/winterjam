@@ -3406,7 +3406,7 @@ PrefabInstance:
     - target: {fileID: 2888737682689779617, guid: 76ebbe2a256dbd0419ee1458f6009ec4,
         type: 3}
       propertyPath: slopeWalkMod
-      value: 2
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 2888737682689779617, guid: 76ebbe2a256dbd0419ee1458f6009ec4,
         type: 3}
@@ -3421,7 +3421,7 @@ PrefabInstance:
     - target: {fileID: 2888737682689779630, guid: 76ebbe2a256dbd0419ee1458f6009ec4,
         type: 3}
       propertyPath: m_LocalPosition.y
-      value: 8.24
+      value: 9.71
       objectReference: {fileID: 0}
     - target: {fileID: 2888737682689779630, guid: 76ebbe2a256dbd0419ee1458f6009ec4,
         type: 3}

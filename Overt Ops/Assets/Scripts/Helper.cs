@@ -46,4 +46,14 @@ public class Helper : MonoBehaviour
         }
         return true;
     }
+
+    public static Vector3 GetFloorNormal(Vector3 origin, LayerMask layerMask, float dist)
+    {
+        RaycastHit hit;
+        if(Physics.Raycast(origin, Vector3.down, out hit, dist, layerMask))
+        {
+            return hit.normal;
+        }
+        return Vector3.zero;
+    }
 }

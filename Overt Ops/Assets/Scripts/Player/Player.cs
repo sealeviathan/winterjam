@@ -10,7 +10,6 @@ public class Player : MonoBehaviour, IKillable, IDamageable
     public float speed = 10.0f;
     public float sprintSpeedMult = 1.5f;
     public float crouchSpeedMult = 0.75f;
-    public float slopeDownforceMult = 1f;
     float sprintSpeed;
     float normalSpeed;
     float crouchSpeed;
@@ -48,6 +47,9 @@ public class Player : MonoBehaviour, IKillable, IDamageable
     {
         get{return transform.position-lastPos;}
     }
+
+    Vector3 curAirVector;
+    Vector3 lastMoveVector;
     Transform hand;
     
 
@@ -89,11 +91,14 @@ public class Player : MonoBehaviour, IKillable, IDamageable
 
         footAngle = Vector3.zero;
         capCol = GetComponent<CapsuleCollider>();
+        curAirVector = new Vector3();
+        lastMoveVector = new Vector3();
     }
 
     // Update is called once per frame
     void Update()
     {   
+        
         if(alive)
         {
             if(jumpCooldown > 0)
@@ -108,6 +113,7 @@ public class Player : MonoBehaviour, IKillable, IDamageable
             }
             CrouchCheck();
             SprintCheck();
+            
         }
         
         
@@ -126,8 +132,8 @@ public class Player : MonoBehaviour, IKillable, IDamageable
             Vector3 tryMoveVector = wantedPos - transform.position;
 
             grounded = Grounded();
-            footAngle = GetFloorAngleMagnitude(tryMoveVector);
-            onSlope = footAngle.y != 0 ? true:false;
+            footAngle = GetFloorAngleVector(tryMoveVector);
+            onSlope = Helper.GetFloorNormal(transform.position, _layerMask, slopeCheckDist).y != 1 ? true:false;
             //Current problem: you will fetching teleport if you touch a straight down edge at a certain angle and velocity.
             //Possible fix: make onSlope checks more rigid.
             blocked = CheckPlayerBlocked(tryMoveVector, out curFootSlope);
@@ -135,13 +141,7 @@ public class Player : MonoBehaviour, IKillable, IDamageable
             //Update to allow wall sliding in the direction of the adjacent angle of trymoveVector and the normal of the
             //object that is in the way. Also, a single ray wont work, use tryMoveVector as a base, and then assign
             //A wider range to capture the odd angles.
-            if(grounded)
-                Debug.Log("Grounded");
-            if(onSlope)
-                Debug.Log("Onslope");
-            if(blocked)
-                Debug.Log("Blocked");
-            Debug.DrawRay(transform.position, footAngle * 100,Color.red,0.01f);
+            
             //Above moveX and moveY are the -1>1 values from Input.GetAxis() multiplied by player speed and then by the 
             //Frame update stabilizer deltaTime. Always multiply movement by deltaTime.
             if(!blocked)
@@ -151,22 +151,35 @@ public class Player : MonoBehaviour, IKillable, IDamageable
                     if(onSlope)
                     {
                         if(curFootSlope <= maxSlope && curFootSlope >= -maxSlope)
+                        {
                             rb.MovePosition(transform.position + footAngle * slopeWalkMod);
+                            lastMoveVector = footAngle * slopeWalkMod * airSpeed;
+                        }
+
                     }
                     else
                     {
                         rb.MovePosition(wantedPos);
+                        lastMoveVector = tryMoveVector * airSpeed;
                     }
                 }
             }
+            Debug.Log(onSlope);
             if(!grounded && lastGrounded == true)
             {
                 //Forget about velocity, find a way to get a static vector3 of the input when jump was pressed.
                 //While not grounded, set the wanted pos to this, and then use whatever air control checks
                 //and movements to modify that air vector. Will result in less random death.
+                rb.velocity = new Vector3(lastMoveVector.x, rb.velocity.y, lastMoveVector.z);
+                
+            }
+            else if(grounded && lastGrounded == false)
+            {
+                //Just touched the ground
             }
             lastPos = transform.position;
             lastGrounded = grounded;
+            
             //Once everything works as it should, work on slimming this class down, outsource some of the built in methods that
             //Aren't as Player specific.
         }
@@ -346,57 +359,17 @@ public class Player : MonoBehaviour, IKillable, IDamageable
         hand.localEulerAngles = new Vector3(angle, hand.localEulerAngles.y, hand.localEulerAngles.z);
         hand.transform.position = new Vector3(hand.transform.position.x, transform.position.y + baseHandHeight + angle/100, hand.transform.position.z);
     }
-    ///<summary>Returns the floor angle vector, but also outs the first point and second point
-    ///used to get that angle, if you want it </summary>
-    Vector3 GetFloorAngleMagnitude(Vector3 locomotionDir, out Vector3 p1, out Vector3 p2)
+    ///<summary>Using Vector3.ProjectOnPlane, finds the perpendicular vector in the direction
+    /// of the player to the normal of the floor below the player</summary>
+    Vector3 GetFloorAngleVector(Vector3 locomotionDir)
     {
-        RaycastHit hit;
-        RaycastHit hit2;
-        p1 = new Vector3();
-        p2 = new Vector3();
-        Vector3 direction = new Vector3(transform.position.x - lastPos.x, 0, transform.position.z - lastPos.z);
-        Vector3 origin2 = transform.position + locomotionDir * capCol.radius;
-        if(Physics.Raycast(transform.position,Vector3.down,out hit,(transform.lossyScale.y/2) + slopeCheckDist,_layerMask))
-        {
-            p1 = hit.point;
-        }
-        if(Physics.Raycast(origin2, Vector3.down, out hit2, slopeCheckDist + 1, _layerMask))
-        {
-            p2 = hit2.point;
-        }
-        
-        return p2-p1;
+        Vector3 origin = new Vector3(transform.position.x, transform.position.y - transform.lossyScale.y/2, transform.position.z);
+        Vector3 floorNorm = Helper.GetFloorNormal(origin, _layerMask, slopeCheckDist);
+        Vector3 slopeVector = Vector3.ProjectOnPlane(locomotionDir,floorNorm);
+        return slopeVector;
         
     }
-    ///<summary>Returns the vector of the floor angle</summary>
-    Vector3 GetFloorAngleMagnitude(Vector3 locomotionDir)
-    {
-        RaycastHit hit;
-        RaycastHit hit2;
-        Vector3 p1 = new Vector3();
-        Vector3 p2 = new Vector3();
-        Vector3 direction = new Vector3(transform.position.x - lastPos.x, 0, transform.position.z - lastPos.z);
-        Vector3 origin2 = transform.position + locomotionDir * capCol.radius;
-        if(Physics.Raycast(transform.position,Vector3.down,out hit,(transform.lossyScale.y/2) + slopeCheckDist,_layerMask))
-        {
-            p1 = hit.point;
-        }
-        if(Physics.Raycast(origin2, Vector3.down, out hit2, slopeCheckDist + 1, _layerMask))
-        {
-            p2 = hit2.point;
-        }
-        return p2-p1;
-        
-    }
-    Vector3 GetFloorNormal()
-    {
-        RaycastHit hit;
-        if(Physics.Raycast(transform.position, Vector3.down, out hit, slopeCheckDist, _layerMask))
-        {
-            return hit.normal;
-        }
-        return Vector3.zero;
-    }
+    
     
     
 }
