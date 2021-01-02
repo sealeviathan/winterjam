@@ -35,7 +35,6 @@ public class PlayerCam : MonoBehaviour
         RaycastHit hit;
         if(Physics.Raycast(transform.position, transform.forward, out hit, 100f))
         {
-            Debug.Log(hit.normal);
         }
     }
     //This one is upsetting, but basically converts a regular +- angle scale to the weird quaternion 360 degree euler degree thing.

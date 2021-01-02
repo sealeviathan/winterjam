@@ -130,16 +130,14 @@ public class Player : MonoBehaviour, IKillable, IDamageable
 
             Vector3 wantedPos = transform.position + transform.forward*moveY + transform.right*moveX;
             Vector3 tryMoveVector = wantedPos - transform.position;
-            Vector3 tryMoveRightAngle = Quaternion.AngleAxis(45, Vector3.up) * tryMoveVector;
-            Vector3 tryMoveLeftAngle = Quaternion.AngleAxis(-45, Vector3.up) * tryMoveVector;
+            Vector3 tryMoveRightAngle = Quaternion.AngleAxis(20, Vector3.up) * tryMoveVector;
+            Vector3 tryMoveLeftAngle = Quaternion.AngleAxis(-20, Vector3.up) * tryMoveVector;
             //Use these right and left angle vectors to check if you're blocked still. If still blocked,
             //Keep doing that same blocked move vector. BUT we dont want it to block us if we aren't touching
             //The wall, so maybe these are only valid, if we are colliding with something? Or use these
             //Ray checks to get a gameobject. Well no actually.
             //If it's the same distance from a center point, same magnitude, and we are a circle, it shouldn't matter.
             //SO yeah use these checks simultaneously I guess.
-            Debug.DrawRay(transform.position, tryMoveRightAngle,Color.red, Time.deltaTime);
-            Debug.DrawRay(transform.position, tryMoveLeftAngle,Color.red, Time.deltaTime);
 
             RaycastHit[] rayHits;
             bool[] boolHits;
@@ -150,6 +148,7 @@ public class Player : MonoBehaviour, IKillable, IDamageable
             blocked = CheckPlayerBlocked(tryMoveVector, out curFootSlope, out rayHits, out boolHits);
             // Also, a single ray wont work, use tryMoveVector as a base, and then assign
             //A wider range to capture the odd angles.
+            
             
             //Above moveX and moveY are the -1>1 values from Input.GetAxis() multiplied by player speed and then by the 
             //Frame update stabilizer deltaTime. Always multiply movement by deltaTime.
@@ -172,8 +171,18 @@ public class Player : MonoBehaviour, IKillable, IDamageable
                         lastMoveVector = tryMoveVector * airSpeed;
                     }
                 }
+                else if(!grounded)
+                {
+                    bool rightAngleBlocked = CheckPlayerBlocked(tryMoveRightAngle, out curFootSlope, out rayHits, out boolHits);
+                    bool leftAngleBlocked = CheckPlayerBlocked(tryMoveLeftAngle, out curFootSlope, out rayHits, out boolHits);
+                    if(rightAngleBlocked || leftAngleBlocked)
+                    {
+                        Debug.Log("Extra Case");
+                        blocked = true;
+                    }
+                }
             }
-            else if(blocked)
+            if(blocked)
             {
                 RaycastHit closestHit = rayHits[0];
                 for(int i = 0; i < boolHits.Length; i++)
@@ -241,13 +250,11 @@ public class Player : MonoBehaviour, IKillable, IDamageable
     }
     bool Grounded()
     {
-        Collider[] hits = Physics.OverlapSphere(footArea, footRadius, _layerMask);
+        Collider[] hits = Physics.OverlapCapsule(footArea,transform.position,footRadius,_layerMask);
         if(hits.Length > 0)
         {
-            grounded = true;
             return true;
         }
-        grounded = false;
         return false;
     }
 

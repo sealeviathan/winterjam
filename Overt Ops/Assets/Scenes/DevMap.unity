@@ -3381,7 +3381,7 @@ PrefabInstance:
     - target: {fileID: 2888737682689779617, guid: 76ebbe2a256dbd0419ee1458f6009ec4,
         type: 3}
       propertyPath: footRadius
-      value: 0.7
+      value: 0.45
       objectReference: {fileID: 0}
     - target: {fileID: 2888737682689779617, guid: 76ebbe2a256dbd0419ee1458f6009ec4,
         type: 3}
@@ -3417,6 +3417,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Interpolate
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2888737682689779619, guid: 76ebbe2a256dbd0419ee1458f6009ec4,
+        type: 3}
+      propertyPath: m_Height
+      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 2888737682689779630, guid: 76ebbe2a256dbd0419ee1458f6009ec4,
         type: 3}
