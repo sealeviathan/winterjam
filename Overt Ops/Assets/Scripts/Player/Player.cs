@@ -130,16 +130,25 @@ public class Player : MonoBehaviour, IKillable, IDamageable
 
             Vector3 wantedPos = transform.position + transform.forward*moveY + transform.right*moveX;
             Vector3 tryMoveVector = wantedPos - transform.position;
+            Vector3 tryMoveRightAngle = Quaternion.AngleAxis(45, Vector3.up) * tryMoveVector;
+            Vector3 tryMoveLeftAngle = Quaternion.AngleAxis(-45, Vector3.up) * tryMoveVector;
+            //Use these right and left angle vectors to check if you're blocked still. If still blocked,
+            //Keep doing that same blocked move vector. BUT we dont want it to block us if we aren't touching
+            //The wall, so maybe these are only valid, if we are colliding with something? Or use these
+            //Ray checks to get a gameobject. Well no actually.
+            //If it's the same distance from a center point, same magnitude, and we are a circle, it shouldn't matter.
+            //SO yeah use these checks simultaneously I guess.
+            Debug.DrawRay(transform.position, tryMoveRightAngle,Color.red, Time.deltaTime);
+            Debug.DrawRay(transform.position, tryMoveLeftAngle,Color.red, Time.deltaTime);
+
+            RaycastHit[] rayHits;
+            bool[] boolHits;
 
             grounded = Grounded();
             footAngle = GetFloorAngleVector(tryMoveVector);
             onSlope = Helper.GetFloorNormal(transform.position, _layerMask, slopeCheckDist).y != 1 ? true:false;
-            //Current problem: you will fetching teleport if you touch a straight down edge at a certain angle and velocity.
-            //Possible fix: make onSlope checks more rigid.
-            blocked = CheckPlayerBlocked(tryMoveVector, out curFootSlope);
-            //While blocked technically works, it could be better.
-            //Update to allow wall sliding in the direction of the adjacent angle of trymoveVector and the normal of the
-            //object that is in the way. Also, a single ray wont work, use tryMoveVector as a base, and then assign
+            blocked = CheckPlayerBlocked(tryMoveVector, out curFootSlope, out rayHits, out boolHits);
+            // Also, a single ray wont work, use tryMoveVector as a base, and then assign
             //A wider range to capture the odd angles.
             
             //Above moveX and moveY are the -1>1 values from Input.GetAxis() multiplied by player speed and then by the 
@@ -164,14 +173,44 @@ public class Player : MonoBehaviour, IKillable, IDamageable
                     }
                 }
             }
-            Debug.Log(onSlope);
+            else if(blocked)
+            {
+                RaycastHit closestHit = rayHits[0];
+                for(int i = 0; i < boolHits.Length; i++)
+                {
+                    if(boolHits[i])
+                    {
+                        if(rayHits[i].distance < closestHit.distance)
+                        {
+                            closestHit = rayHits[i];
+                        }
+                    }
+                }
+                
+                if(grounded)
+                {
+                    if(onSlope)
+                    {
+                        if(curFootSlope <= maxSlope && curFootSlope >= -maxSlope)
+                        {
+                            Vector3 remainderVector = GetBlockedRemainderVector(closestHit.normal, footAngle);
+                            rb.MovePosition(transform.position + remainderVector * slopeWalkMod);
+                            lastMoveVector = footAngle * slopeWalkMod * airSpeed;
+                        }
+
+                    }
+                    else
+                    {
+                        Vector3 remainderVector = GetBlockedRemainderVector(closestHit.normal, tryMoveVector);
+                        rb.MovePosition(transform.position + remainderVector);
+                        lastMoveVector = remainderVector * airSpeed;
+                    }
+                }
+            }
             if(!grounded && lastGrounded == true)
             {
-                //Forget about velocity, find a way to get a static vector3 of the input when jump was pressed.
-                //While not grounded, set the wanted pos to this, and then use whatever air control checks
-                //and movements to modify that air vector. Will result in less random death.
+                //Just left the ground
                 rb.velocity = new Vector3(lastMoveVector.x, rb.velocity.y, lastMoveVector.z);
-                
             }
             else if(grounded && lastGrounded == false)
             {
@@ -309,7 +348,7 @@ public class Player : MonoBehaviour, IKillable, IDamageable
         
     }
     /// <summary> returns true if there is something in the way of said direction of the player, else false </summary>
-    bool CheckPlayerBlocked(Vector3 direction, out int angle)
+    bool CheckPlayerBlocked(Vector3 direction, out int angle, out RaycastHit[] rayHits, out bool[] boolHits)
     {
         angle = 0;
         //Choose your origins here
@@ -321,12 +360,11 @@ public class Player : MonoBehaviour, IKillable, IDamageable
         areas[1] = bodArea;
         areas[2] = headArea;
         //Done with choosing origins, now logic
-        bool[] boolHits;
-        RaycastHit[] rayHits;
         
         bool inLocomotionPath = CheckSideArray(areas, direction, out boolHits, out rayHits);
         //This whole section basically checks if the player is trying to move into a wall.
         //If they are, stop their movement in that axis.
+        
         if(inLocomotionPath)
         {
             if(grounded)
@@ -367,7 +405,16 @@ public class Player : MonoBehaviour, IKillable, IDamageable
         Vector3 floorNorm = Helper.GetFloorNormal(origin, _layerMask, slopeCheckDist);
         Vector3 slopeVector = Vector3.ProjectOnPlane(locomotionDir,floorNorm);
         return slopeVector;
-        
+    }
+    ///<summary>For when player moves into a wall at an off angle, return a vector parallel with the wall that
+    ///player is running into, with magnitude determined by the difference between the wall normal and players
+    ///attacking direction</summary>
+    Vector3 GetBlockedRemainderVector(Vector3 hitObjNormal, Vector3 locomotionDir)
+    {
+        //In similar fashion of GetFloorAngleVector, paste my horizontal movement onto the face of 
+        //the recieving wall.
+        return Vector3.ProjectOnPlane(locomotionDir, hitObjNormal);
+
     }
     
     
