@@ -7,6 +7,7 @@ public class StairStepper : MonoBehaviour
     //An abstract class for player stair stepping technology.
     int tracedContacts;
     ContactPoint[] allCPs;
+    int groundContactIndex;
     public float maxStepHeight = 0.4f;        // The maximum a player can set upwards in units when they hit a wall that's potentially a step
     public float stepSearchOvershoot = 0.01f; // How much to overshoot into the direction a potential step in units when testing. High values prevent player from walking up tiny steps but may cause problems.
     private void Start()
@@ -21,6 +22,7 @@ public class StairStepper : MonoBehaviour
         {
             allCPs[i] = other.GetContact(i);
         }
+        Debug.Log(tracedContacts.ToString()+" contacts");
     }
     public void ClearContacts()
     {
@@ -29,13 +31,16 @@ public class StairStepper : MonoBehaviour
     
     public bool FindGround(out ContactPoint groundCP)
     {
+        int i = 0;
         groundCP = default(ContactPoint);
         bool found = false;
         foreach(ContactPoint contact in allCPs)
         {
+            i++;
             //Pointing with some up direction
             if(contact.normal.y > 0.0001f && (found == false || contact.normal.y > groundCP.normal.y))
             {
+                groundContactIndex = i;
                 groundCP = contact;
                 found = true;
             }
@@ -71,13 +76,16 @@ public class StairStepper : MonoBehaviour
         Collider stepCol = stepTestCP.otherCollider; //You'll need the collider of the potential step for this
         //Determine if stepTestCP is a stair...
         //( 1 ) Check if the contact point normal matches that of a stair (y close to 0)
-        if(Mathf.Abs(stepTestCP.normal.y) >= 0.01f)
+        if(Mathf.Abs(stepTestCP.normal.y) >= .9f)
         {
+            Debug.Log("Not stairy enough");
+            Debug.Log(stepTestCP.normal.y);
             return false;
         }
         //( 2 ) Make sure the contact point is low enough to be a stair
         if( !(stepTestCP.point.y - groundCP.point.y < maxStepHeight) )
         {
+            Debug.Log("Not low enough");
             return false;
         }
         //( 3 ) Check to see if there's actually a place to step in front of us
@@ -89,6 +97,7 @@ public class StairStepper : MonoBehaviour
         Vector3 direction = Vector3.down;
         if( !(stepCol.Raycast(new Ray(origin, direction), out hitInfo, maxStepHeight)) )
         {
+            Debug.Log("No new step floor found");
             return false;
         }
         //We have enough info to calculate the points

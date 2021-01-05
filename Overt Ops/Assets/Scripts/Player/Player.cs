@@ -79,7 +79,7 @@ public class Player : MonoBehaviour, IKillable, IDamageable
     {
         _stairStepper = GetComponent<StairStepper>();
 
-        wallCheckDist = (transform.lossyScale.x + transform.lossyScale.z)/2 * collisionRadius;
+        wallCheckDist = (transform.lossyScale.x + transform.lossyScale.z)/2 * collisionRadius * 0;
 
         rb = GetComponent<Rigidbody>();
         cam = GameObject.FindGameObjectWithTag("MainCamera").GetComponent<PlayerCam>();
@@ -148,6 +148,7 @@ public class Player : MonoBehaviour, IKillable, IDamageable
             ContactPoint groundCP = default(ContactPoint);
 
             grounded = _stairStepper.FindGround(out groundCP); //Im trying out the stairstepper method, was grounded = Grounded();
+            grounded = Grounded();
             footAngle = GetFloorAngleVector(tryMoveVector);
             onSlope = Helper.GetFloorNormal(transform.position, _layerMask, slopeCheckDist).y != 1 ? true:false;
             blocked = CheckPlayerBlocked(tryMoveVector, out curFootSlope, out rayHits, out boolHits);
@@ -170,17 +171,26 @@ public class Player : MonoBehaviour, IKillable, IDamageable
             Vector3 stepUpOffset = default(Vector3);
             bool stepUp = false;
             if(grounded)
+            {
                 stepUp = _stairStepper.FindStep(out stepUpOffset, groundCP, tryMoveVector);
+            }
 
             //Steps
             if(stepUp)
             {
-                rb.position += stepUpOffset;
+                Debug.Log("StepUp");
+                rb.MovePosition(wantedPos + stepUpOffset);
             }
+            //Stair walking works now
+            //But, you cant jump while walking into a wall
+            //So what you need to fix, is being blocked, and what happens now that we have stair logic.
+            //It's a little different. Also, check for slope FIRST and THEN stairs.
+            //Order of importance: Slope walking > Stair walking > Being blocked
 
             _stairStepper.ClearContacts();
             
             //STAIR SHIZ -----------------------------------------------------------------------------------------
+
             if(!blocked && !stepUp)
             {
                 if(grounded)
@@ -206,7 +216,6 @@ public class Player : MonoBehaviour, IKillable, IDamageable
                     bool leftAngleBlocked = CheckPlayerBlocked(tryMoveLeftAngle, out curFootSlope, out rayHits, out boolHits);
                     if(rightAngleBlocked || leftAngleBlocked)
                     {
-                        Debug.Log("Extra Case");
                         blocked = true;
                     }
                 }
