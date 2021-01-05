@@ -2,8 +2,10 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+[RequireComponent(typeof(StairStepper))]
 public class Player : MonoBehaviour, IKillable, IDamageable
 {
+    StairStepper _stairStepper;
     
     public int health {get; set;}
     public int maxHealth {get; set;}
@@ -27,6 +29,9 @@ public class Player : MonoBehaviour, IKillable, IDamageable
     bool grounded = false;
     bool blocked = false;
     bool lastGrounded;
+
+    bool crouching = false;
+    bool running = false;
 
     float wallCheckDist;
     float baseHandHeight;
@@ -72,6 +77,8 @@ public class Player : MonoBehaviour, IKillable, IDamageable
     // Start is called before the first frame update
     void Start()
     {
+        _stairStepper = GetComponent<StairStepper>();
+
         wallCheckDist = (transform.lossyScale.x + transform.lossyScale.z)/2 * collisionRadius;
 
         rb = GetComponent<Rigidbody>();
@@ -111,8 +118,8 @@ public class Player : MonoBehaviour, IKillable, IDamageable
             {
                 Jump(jumpSpeed);
             }
-            CrouchCheck();
-            SprintCheck();
+            crouching = CrouchCheck();
+            running = SprintCheck();
             
         }
         
@@ -122,6 +129,7 @@ public class Player : MonoBehaviour, IKillable, IDamageable
     {
         if(alive)
         {
+            //DEFAULT STUFF --------------------------------------------------------------------------------------------------
             //NOTE: ?: ternary operator:
             //e.g: var foo = if condition ? valueIfTrue:elseValue;
 
@@ -132,17 +140,14 @@ public class Player : MonoBehaviour, IKillable, IDamageable
             Vector3 tryMoveVector = wantedPos - transform.position;
             Vector3 tryMoveRightAngle = Quaternion.AngleAxis(20, Vector3.up) * tryMoveVector;
             Vector3 tryMoveLeftAngle = Quaternion.AngleAxis(-20, Vector3.up) * tryMoveVector;
-            //Use these right and left angle vectors to check if you're blocked still. If still blocked,
-            //Keep doing that same blocked move vector. BUT we dont want it to block us if we aren't touching
-            //The wall, so maybe these are only valid, if we are colliding with something? Or use these
-            //Ray checks to get a gameobject. Well no actually.
-            //If it's the same distance from a center point, same magnitude, and we are a circle, it shouldn't matter.
-            //SO yeah use these checks simultaneously I guess.
+            //The trymove left and right angles for for an odd case, currently they are necessary for some reason. Their implementation
+            //Kinda sucks, so work on that later.
 
             RaycastHit[] rayHits;
             bool[] boolHits;
+            ContactPoint groundCP = default(ContactPoint);
 
-            grounded = Grounded();
+            grounded = _stairStepper.FindGround(out groundCP); //Im trying out the stairstepper method, was grounded = Grounded();
             footAngle = GetFloorAngleVector(tryMoveVector);
             onSlope = Helper.GetFloorNormal(transform.position, _layerMask, slopeCheckDist).y != 1 ? true:false;
             blocked = CheckPlayerBlocked(tryMoveVector, out curFootSlope, out rayHits, out boolHits);
@@ -152,7 +157,31 @@ public class Player : MonoBehaviour, IKillable, IDamageable
             
             //Above moveX and moveY are the -1>1 values from Input.GetAxis() multiplied by player speed and then by the 
             //Frame update stabilizer deltaTime. Always multiply movement by deltaTime.
-            if(!blocked)
+
+            //The idea is, check for stairs first. AND THEN check if im blocked. If I check im blocked before checking
+            //stairs, stairs will never work.
+            
+            //STAIR SHIZ -----------------------------------------------------------------------------------------
+        
+            //Filter through the ContactPoints to see if we're grounded and to see if we can step up
+            //-ContactPoint groundCP = default(ContactPoint);
+            //-bool grounded = FindGround(out groundCP, allCPs);
+
+            Vector3 stepUpOffset = default(Vector3);
+            bool stepUp = false;
+            if(grounded)
+                stepUp = _stairStepper.FindStep(out stepUpOffset, groundCP, tryMoveVector);
+
+            //Steps
+            if(stepUp)
+            {
+                rb.position += stepUpOffset;
+            }
+
+            _stairStepper.ClearContacts();
+            
+            //STAIR SHIZ -----------------------------------------------------------------------------------------
+            if(!blocked && !stepUp)
             {
                 if(grounded)
                 {
@@ -182,7 +211,8 @@ public class Player : MonoBehaviour, IKillable, IDamageable
                     }
                 }
             }
-            if(blocked)
+            
+            if(blocked && !stepUp)
             {
                 RaycastHit closestHit = rayHits[0];
                 for(int i = 0; i < boolHits.Length; i++)
@@ -216,6 +246,8 @@ public class Player : MonoBehaviour, IKillable, IDamageable
                     }
                 }
             }
+            
+            
             if(!grounded && lastGrounded == true)
             {
                 //Just left the ground
@@ -227,9 +259,8 @@ public class Player : MonoBehaviour, IKillable, IDamageable
             }
             lastPos = transform.position;
             lastGrounded = grounded;
-            
-            //Once everything works as it should, work on slimming this class down, outsource some of the built in methods that
-            //Aren't as Player specific.
+            //DEFAULT STUFF --------------------------------------------------------------------------------------------------
+            _stairStepper.ClearContacts();
         }
     }
 
@@ -288,40 +319,50 @@ public class Player : MonoBehaviour, IKillable, IDamageable
         
     }
     //Being made specifically for a capsule player.
-    void CrouchCheck()
+    bool CrouchCheck()
     {
         if(Input.GetButtonDown("Crouch"))
         {
             float drop = crouchScale / 2;
             transform.position = new Vector3(transform.position.x, transform.position.y - drop, transform.position.z);
             speed = crouchSpeed;
+            return true;
         }
         else if(Input.GetButton("Crouch"))
         {
             //crouch
             speed = crouchSpeed;
             transform.localScale = new Vector3(transform.localScale.x, crouchScale, transform.localScale.z);
-            
+            return true;
         }
         else if(Input.GetButtonUp("Crouch"))
         {
             //uncrouch
             transform.localScale = Vector3.one;
             speed = normalSpeed;
+            return false;
         }
+        return false;
     }
-    void SprintCheck()
+    bool SprintCheck()
     {
         if(Input.GetButton("Sprint"))
         {
-            speed = sprintSpeed;
-            cam.HeadBob(runBobRate, headBobAmount);
+            if(!crouching)
+            {
+                speed = sprintSpeed;
+                cam.HeadBob(runBobRate, headBobAmount);
+                return true;
+            }
+            return false;
         }
         else if(Input.GetButtonUp("Sprint"))
         {
             speed = normalSpeed;
             cam.headHeight = cam.BaseHeadHeight;
+            return false;
         }
+        return false;
     }
     bool CheckSideArray(Vector3[] origins, Vector3 direction, out bool[] boolHits, out RaycastHit[] rayHits)
     {
@@ -422,6 +463,16 @@ public class Player : MonoBehaviour, IKillable, IDamageable
         //the recieving wall.
         return Vector3.ProjectOnPlane(locomotionDir, hitObjNormal);
 
+    }
+    //EVENTS////EVENTS////EVENTS////EVENTS////EVENTS////EVENTS////EVENTS////EVENTS////EVENTS////EVENTS//
+    //EVENTS////EVENTS////EVENTS////EVENTS////EVENTS////EVENTS////EVENTS////EVENTS////EVENTS////EVENTS//
+    private void OnCollisionEnter(Collision other)
+    {
+        _stairStepper.SetContacts(other);
+    }
+    private void OnCollisionStay(Collision other)
+    {
+        _stairStepper.SetContacts(other);
     }
     
     
