@@ -14,6 +14,7 @@ public class StairStepper : MonoBehaviour
     {
         
     }
+    //Thanks to Coberto's blog for the base code! (I had to modify to make it work, but general idea is still there)
     public void SetContacts(Collision other)
     {
         tracedContacts = other.contactCount;
@@ -22,7 +23,6 @@ public class StairStepper : MonoBehaviour
         {
             allCPs[i] = other.GetContact(i);
         }
-        Debug.Log(tracedContacts.ToString()+" contacts");
     }
     public void ClearContacts()
     {
@@ -79,7 +79,6 @@ public class StairStepper : MonoBehaviour
         if(Mathf.Abs(stepTestCP.normal.y) >= .9f)
         {
             Debug.Log("Not stairy enough");
-            Debug.Log(stepTestCP.normal.y);
             return false;
         }
         //( 2 ) Make sure the contact point is low enough to be a stair

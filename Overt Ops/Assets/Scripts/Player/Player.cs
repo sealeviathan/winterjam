@@ -16,6 +16,7 @@ public class Player : MonoBehaviour, IKillable, IDamageable
     float normalSpeed;
     float crouchSpeed;
     public float airSpeed;
+    public float airControlMult;
     public float jumpSpeed = 5f;
     public float sensitivity = 35f;
     public LayerMask _layerMask;
@@ -147,7 +148,7 @@ public class Player : MonoBehaviour, IKillable, IDamageable
             bool[] boolHits;
             ContactPoint groundCP = default(ContactPoint);
 
-            grounded = _stairStepper.FindGround(out groundCP); //Im trying out the stairstepper method, was grounded = Grounded();
+            _stairStepper.FindGround(out groundCP);
             grounded = Grounded();
             footAngle = GetFloorAngleVector(tryMoveVector);
             onSlope = Helper.GetFloorNormal(transform.position, _layerMask, slopeCheckDist).y != 1 ? true:false;
@@ -176,11 +177,7 @@ public class Player : MonoBehaviour, IKillable, IDamageable
             }
 
             //Steps
-            if(stepUp)
-            {
-                Debug.Log("StepUp");
-                rb.MovePosition(wantedPos + stepUpOffset);
-            }
+            
             //Stair walking works now
             //But, you cant jump while walking into a wall
             //So what you need to fix, is being blocked, and what happens now that we have stair logic.
@@ -190,8 +187,8 @@ public class Player : MonoBehaviour, IKillable, IDamageable
             _stairStepper.ClearContacts();
             
             //STAIR SHIZ -----------------------------------------------------------------------------------------
-
-            if(!blocked && !stepUp)
+            //BLOCKED LOGIC --------------------------------------------------------------------------------------
+            if(!blocked)
             {
                 if(grounded)
                 {
@@ -204,6 +201,11 @@ public class Player : MonoBehaviour, IKillable, IDamageable
                         }
 
                     }
+                    else if(stepUp)
+                    {
+                        Debug.Log("StepUp");
+                        rb.MovePosition(wantedPos + stepUpOffset);
+                    }
                     else
                     {
                         rb.MovePosition(wantedPos);
@@ -212,28 +214,20 @@ public class Player : MonoBehaviour, IKillable, IDamageable
                 }
                 else if(!grounded)
                 {
+                    rb.MovePosition(transform.position + tryMoveVector * airControlMult);
                     bool rightAngleBlocked = CheckPlayerBlocked(tryMoveRightAngle, out curFootSlope, out rayHits, out boolHits);
                     bool leftAngleBlocked = CheckPlayerBlocked(tryMoveLeftAngle, out curFootSlope, out rayHits, out boolHits);
                     if(rightAngleBlocked || leftAngleBlocked)
                     {
                         blocked = true;
+                        Debug.Log("extra case");
                     }
                 }
             }
             
-            if(blocked && !stepUp)
+            if(blocked)
             {
-                RaycastHit closestHit = rayHits[0];
-                for(int i = 0; i < boolHits.Length; i++)
-                {
-                    if(boolHits[i])
-                    {
-                        if(rayHits[i].distance < closestHit.distance)
-                        {
-                            closestHit = rayHits[i];
-                        }
-                    }
-                }
+                RaycastHit closestHit = Helper.GetClosestHit(rayHits);
                 
                 if(grounded)
                 {
@@ -249,13 +243,14 @@ public class Player : MonoBehaviour, IKillable, IDamageable
                     }
                     else
                     {
+                        Debug.Log("Move Remainder");
                         Vector3 remainderVector = GetBlockedRemainderVector(closestHit.normal, tryMoveVector);
                         rb.MovePosition(transform.position + remainderVector);
                         lastMoveVector = remainderVector * airSpeed;
                     }
                 }
             }
-            
+            //BLOCKED LOGIC --------------------------------------------------------------------------------------
             
             if(!grounded && lastGrounded == true)
             {

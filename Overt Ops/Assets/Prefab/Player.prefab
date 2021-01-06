@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 2888737682689779619}
   - component: {fileID: 2888737682689779618}
   - component: {fileID: 2888737682689779617}
+  - component: {fileID: 244832078}
   m_Layer: 8
   m_Name: Player
   m_TagString: Player
@@ -128,17 +129,36 @@ MonoBehaviour:
   speed: 5
   sprintSpeedMult: 1.5
   crouchSpeedMult: 0.75
+  airSpeed: 44
+  airControlMult: 1
   jumpSpeed: 5
   sensitivity: 35
   _layerMask:
     serializedVersion: 2
     m_Bits: 55
-  footRadius: 0.75
+  footRadius: 0.45
   footDistance: 0.15
   collisionRadius: 0.75
+  slopeCheckDist: 2
+  maxSlope: 45
+  slopeWalkMod: 1
   runBobRate: 10
   headBobAmount: 0.7
   maxJumpCooldown: 0.8
+--- !u!114 &244832078
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2888737682689779616}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2cba28dbf855d3f4b991c097f5b143d0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  maxStepHeight: 0.5
+  stepSearchOvershoot: 0.01
 --- !u!1 &2888737683299232790
 GameObject:
   m_ObjectHideFlags: 0

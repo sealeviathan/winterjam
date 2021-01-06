@@ -56,5 +56,17 @@ public class Helper : MonoBehaviour
         }
         return Vector3.zero;
     }
+    public static RaycastHit GetClosestHit(RaycastHit[] rayHits)
+    {
+        RaycastHit closestHit = rayHits[0];
+        for(int i = 0; i < rayHits.Length; i++)
+        {
+            if(rayHits[i].distance < closestHit.distance)
+            {
+                closestHit = rayHits[i];
+            }
+        }
+        return closestHit;
+    }
     
 }
