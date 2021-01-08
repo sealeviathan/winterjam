@@ -21,6 +21,7 @@ public class Weapon : MonoBehaviour
     bool hitWithable = false;
     bool throwable = false;
 
+
     public Weapon(int baseDamage, LayerMask _playerMask, ShootingWeapon shootingWeapon, ThrowingWeapon throwingWeapon, 
     MeleeWeapon meleeWeapon, float stunTime = 0.25f, bool autoFire = false)
     {
@@ -58,6 +59,11 @@ public class Weapon : MonoBehaviour
         {
             RaycastHit hit;
             bool reachedTarget = _shootingWeapon.Bulletcast(attackOrigin, attackDirection, out hit, _playerMask);
+            if(reachedTarget)
+            {
+                GameObject hitObject = hit.transform.GetComponent<GameObject>();
+                ApplyDamageInterfaces(hitObject);
+            }
             //Do stuff to target; Implement the interfaces
         }
         return;
@@ -66,6 +72,17 @@ public class Weapon : MonoBehaviour
     {
         RaycastHit meleeHit;
         bool reachedTarget = _meleeWeapon.Meleecast(attackOrigin, attackDirection, out meleeHit, _playerMask);
+        if(reachedTarget)
+        {
+            GameObject hitObject = meleeHit.transform.GetComponent<GameObject>();
+            ApplyDamageInterfaces(hitObject);
+            IWackable wackable = hitObject.GetComponent<IWackable>();
+            if(wackable != null)
+            {
+                wackable.Wack(attackDirection, _meleeWeapon._wackPower);
+            }
+
+        }
         //Do stuff to target
         return;
     }
@@ -106,7 +123,19 @@ public class Weapon : MonoBehaviour
         if(throwable)
             ThrowAttack();
     }
-    
+    public void ApplyDamageInterfaces(GameObject hitObject)
+    {
+        IDamageable damageable = hitObject.GetComponent<IDamageable>();
+        IStaggerable staggerable = hitObject.GetComponent<IStaggerable>();
+        if(damageable != null)
+        {
+            damageable.Damage(baseDamage);
+        }
+        if(staggerable != null)
+        {
+            staggerable.Stagger(stunTime);
+        }
+    }
     //End inputs
     public void SetAutoFire(bool boolean)
     {

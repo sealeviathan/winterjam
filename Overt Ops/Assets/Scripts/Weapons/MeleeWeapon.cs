@@ -8,9 +8,14 @@ public class MeleeWeapon
     float meleeCooldown;
     float curMeleeCooldown;
     float effectiveDistance;
+    float wackPower;
     public float _meleeCooldown
     {
         get {return this.meleeCooldown;}
+    }
+    public float _wackPower
+    {
+        get{return this.wackPower;}
     }
 
     public bool empty;
@@ -18,12 +23,13 @@ public class MeleeWeapon
     {
         empty = true;
     }
-    public MeleeWeapon(float meleeRadius, float meleeCooldown, float effectiveDistance)
+    public MeleeWeapon(float meleeRadius, float meleeCooldown, float effectiveDistance, float wackPower = 5f)
     {
         this.meleeRadius = meleeRadius;
         this.meleeCooldown = meleeCooldown;
         this.curMeleeCooldown = 0;
         this.effectiveDistance = effectiveDistance;
+        this.wackPower = wackPower;
     }
 
     public void UpdateMeleeTimers(float timeScale)
