@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Enemy : MonoBehaviour
+public class Enemy : BaseEntity
 {
     // Start is called before the first frame update
     float speed = 10f;
@@ -10,13 +10,14 @@ public class Enemy : MonoBehaviour
     public Vector3[] waypoints;
     int curIter = 0;
     public GameObject player;
-
+    UnityEngine.AI.NavMeshAgent agent;
     int damage = 5;
-    int health = 10;
 
     void Start()
     {
+        health = 10;
         target = waypoints[0];
+        agent = GetComponent<UnityEngine.AI.NavMeshAgent>();
     }
 
     // Update is called once per frame
@@ -36,8 +37,8 @@ public class Enemy : MonoBehaviour
     //Redesign it with rigidbodies in mind.
     private void MoveToTarget(Vector3 target)
     {
-        transform.LookAt(target, Vector3.up);
-        transform.position += transform.forward * speed * Time.deltaTime;
+        agent.destination = target;
+        agent.speed = speed;
     }
     
     //Search() takes an array of vector3 coordinates, cycles through them, goes from one to the next, then back to the 
@@ -45,21 +46,16 @@ public class Enemy : MonoBehaviour
     //when player leaves that range, goes back to roam.
     private void Search(Vector3[] points)
     {
-        float playerX;
-        float playerZ;
+        Vector3 playerPos;
         if(player != null)
         {
-            playerX = player.transform.position.x;
-            playerZ = player.transform.position.z;
+            playerPos = player.transform.position;
         }
         else
         {
-            playerX = 9999;
-            playerZ = 9999;
+            playerPos = new Vector3(9999, 9999, 9999);
         }
-        float curX = transform.position.x;
-        float curZ = transform.position.z;
-        float distance = AbsDistance(playerX, curX, playerZ, curZ);
+        float distance = AbsDistance(playerPos, transform.position);
         if(distance < 10)
         {
             target = player.transform.position;
@@ -67,7 +63,7 @@ public class Enemy : MonoBehaviour
         else
         {
             target = waypoints[curIter];
-            if(AbsDistance(target.x, curX, target.z, curZ) < 1)
+            if(AbsDistance(target, transform.position) < 1)
             {
                 curIter++;
                 if(curIter > waypoints.Length - 1)
@@ -80,10 +76,11 @@ public class Enemy : MonoBehaviour
 
     }
     //Just math really, gets the absolute distance between two points. 
-    float AbsDistance(float x2, float x1, float y2, float y1)
+    float AbsDistance(Vector3 pos2, Vector3 pos1)
     {
-        float xDis = x2 - x1;
-        float yDis = y2 - y1;
-        return Mathf.Abs(Mathf.Sqrt((xDis * xDis) + (yDis * yDis)));
+        float xDis = pos2.x - pos1.x;
+        float yDis = pos2.y - pos1.y;
+        float zDis = pos2.z - pos1.z;
+        return Mathf.Abs(Mathf.Sqrt((xDis * xDis) + (yDis * yDis) + (zDis * zDis)));
     }
 }

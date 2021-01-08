@@ -7,7 +7,7 @@ public class BaseEntity : MonoBehaviour, IDamageable, IKillable, IStabbable, ISt
     public int health {get; set;}
     public int maxHealth {get; set;}
 
-    public void Damage(int amount)
+    public virtual void Damage(int amount)
     {
         //A publicly accessible damage method
         health -= amount;
@@ -25,7 +25,8 @@ public class BaseEntity : MonoBehaviour, IDamageable, IKillable, IStabbable, ISt
     ///Then, set 'other' as a child of this gameobject.</summary>
     public void GetStabbed(GameObject other, Vector3 otherDirection)
     {
-        other.transform.rotation = otherDirection;
+        other.transform.localEulerAngles = otherDirection;
+        other.transform.SetParent(gameObject.transform);
     }
 
     public virtual void Stagger(float seconds)

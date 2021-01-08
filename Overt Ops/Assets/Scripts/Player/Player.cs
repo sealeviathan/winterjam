@@ -3,12 +3,10 @@ using System.Collections.Generic;
 using UnityEngine;
 
 [RequireComponent(typeof(StairStepper))]
-public class Player : MonoBehaviour, IKillable, IDamageable
+public class Player : BaseEntity
 {
     StairStepper _stairStepper;
     
-    public int health {get; set;}
-    public int maxHealth {get; set;}
     public float speed = 10.0f;
     public float sprintSpeedMult = 1.5f;
     public float crouchSpeedMult = 0.75f;
@@ -18,7 +16,7 @@ public class Player : MonoBehaviour, IKillable, IDamageable
     public float airSpeed;
     public float airControlMult;
     public float jumpSpeed = 5f;
-    public float sensitivity = 35f;
+    
     public LayerMask _layerMask;
     Rigidbody rb;
     CapsuleCollider capCol;
@@ -74,7 +72,9 @@ public class Player : MonoBehaviour, IKillable, IDamageable
     public float maxJumpCooldown = .25f;
 
     float crouchScale = 0.75f;
-    
+    PlayerInventory inventory;
+    Weapon curWeapon;
+    //Make a separate player input class to deal with all of the input specific values and methods.
     // Start is called before the first frame update
     void Start()
     {
@@ -101,6 +101,8 @@ public class Player : MonoBehaviour, IKillable, IDamageable
         capCol = GetComponent<CapsuleCollider>();
         curAirVector = new Vector3();
         lastMoveVector = new Vector3();
+
+        inventory = GetComponent<PlayerInventory>();
     }
 
     // Update is called once per frame
@@ -113,8 +115,6 @@ public class Player : MonoBehaviour, IKillable, IDamageable
             {
                 jumpCooldown -= Time.deltaTime;
             }
-            //Update is good for getting player input. There are multiple ways to track keypresses and axis, but the input
-            //manager is best in this case.
             if(Input.GetButtonDown("Jump"))
             {
                 Jump(jumpSpeed);
@@ -268,16 +268,7 @@ public class Player : MonoBehaviour, IKillable, IDamageable
         }
     }
 
-    public void Damage(int amount)
-    {
-        //A publicly accessible damage method
-        health -= amount;
-        if(health < 0)
-        {
-            Kill();
-        }
-    }
-    public void Kill()
+    public override void Kill()
     {
         //Self explanatory
         alive = false;
@@ -367,6 +358,10 @@ public class Player : MonoBehaviour, IKillable, IDamageable
             return false;
         }
         return false;
+    }
+    public void GiveWeapon(Weapon weapon)
+    {
+        inventory.AddWeapon(weapon);
     }
     bool CheckSideArray(Vector3[] origins, Vector3 direction, out bool[] boolHits, out RaycastHit[] rayHits)
     {

@@ -9,7 +9,7 @@ public class Weapon : MonoBehaviour
     public LayerMask _playerMask;
     public Vector3 attackOrigin = new Vector3(); //Needs to be set every frame while active//All types
     public Vector3 attackDirection = new Vector3(); //Same ^//All types
-    bool isAvaliable = false;
+    public bool isAvaliable = false;
     bool autoFire;
     float stunTime;
     //A weapon is nothing without its mod classes
