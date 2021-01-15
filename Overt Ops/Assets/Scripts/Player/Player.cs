@@ -102,7 +102,7 @@ public class Player : BaseEntity
         curAirVector = new Vector3();
         lastMoveVector = new Vector3();
 
-        inventory = GetComponent<PlayerInventory>();
+        inventory = new PlayerInventory();
     }
 
     // Update is called once per frame

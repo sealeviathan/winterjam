@@ -71,5 +71,9 @@ public struct PlayerInventory
     {
         return weapons[i];
     }
+    public void setWeaponIndex(int i)
+    {
+        this.curWepIndex = i;
+    }
     
 }
