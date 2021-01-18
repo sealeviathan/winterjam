@@ -11,19 +11,20 @@ public class PickupItem : MonoBehaviour
     public float bobSpeed;
     public enum Types{Weapon,Recharge,Objective}
     public Types thisType;
-    public Weapon possibleWeapon;
+    [SerializeField]
+    Weapon possibleWeapon = null;
     float initialHeight;
     // Start is called before the first frame update
     //Need to autofetch the texture for the mesh renderer
     void Start()
     {
-        BoxCollider thisCollider = GetComponent<BoxCollider>();
-        thisCollider.isTrigger = true;
         if(possibleWeapon != null)
         {
             thisType = Types.Weapon;
         }
         //...
+        BoxCollider thisCollider = GetComponent<BoxCollider>();
+        thisCollider.isTrigger = true;
         MeshFilter _meshFilter = GetComponent<MeshFilter>();
         _meshFilter.mesh = visual;
         initialHeight = transform.position.y;
@@ -48,6 +49,7 @@ public class PickupItem : MonoBehaviour
                 Player _player = other.GetComponent<Player>();
                 _player.GiveWeapon(possibleWeapon);
             }
+            Destroy(gameObject);
         }
     }
 }

@@ -1,11 +1,15 @@
 ﻿using UnityEngine;
-
-public class ThrowingWeapon
+[CreateAssetMenu(fileName = "New ThrowingWeapon", menuName = "Items/Weapon Pieces/Throwing")]
+public class ThrowingWeapon : ScriptableObject
 {
     //Specifically, thrown members
+    [SerializeField]
     GameObject thrownObject;
+    [SerializeField]
     float thrownVelocityMult;
+    [SerializeField]
     float thrownArcMult;
+    [SerializeField]
     float effectiveDistance;
 
     public bool empty;

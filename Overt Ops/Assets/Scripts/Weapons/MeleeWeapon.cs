@@ -1,13 +1,17 @@
 ﻿using UnityEngine;
-
-public class MeleeWeapon
+[CreateAssetMenu(fileName = "New MeleeWeapon", menuName = "Items/Weapon Pieces/Melee")]
+public class MeleeWeapon : ScriptableObject
 {
     //Specifically, melee members
     public bool canMelee;
+    [SerializeField]
     float meleeRadius;
+    [SerializeField]
     float meleeCooldown;
     float curMeleeCooldown;
+    [SerializeField]
     float effectiveDistance;
+    [SerializeField]
     float wackPower;
     public float _meleeCooldown
     {

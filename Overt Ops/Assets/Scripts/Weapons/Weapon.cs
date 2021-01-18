@@ -1,41 +1,50 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-[System.Serializable]
-public class Weapon : MonoBehaviour
+[CreateAssetMenu(fileName = "New Weapon", menuName = "Items/Weapon")]
+public class Weapon : ScriptableObject
 {
     //Mutual members-------------------------------------
+    [SerializeField]
     int baseDamage;
+    [SerializeField]
     public LayerMask _playerMask;
     public Vector3 attackOrigin = new Vector3(); //Needs to be set every frame while active//All types
     public Vector3 attackDirection = new Vector3(); //Same ^//All types
     public bool isAvaliable = false;
+    [SerializeField]
     bool autoFire;
+    [SerializeField]
     float stunTime;
     //A weapon is nothing without its mod classes
+    [SerializeField]
     ShootingWeapon _shootingWeapon;
+    [SerializeField]
     ThrowingWeapon _throwingWeapon;
+    [SerializeField]
     MeleeWeapon _meleeWeapon;
-
+    [SerializeField]
     bool shootable = false;
+    [SerializeField]
     bool hitWithable = false;
+    [SerializeField]
     bool throwable = false;
 
 
     public Weapon(int baseDamage, LayerMask _playerMask, ShootingWeapon shootingWeapon, ThrowingWeapon throwingWeapon, 
     MeleeWeapon meleeWeapon, float stunTime = 0.25f, bool autoFire = false)
     {
-        if(!shootingWeapon.empty)
+        if(!shootingWeapon.empty && shootingWeapon != null)
         {
             shootable = true;
             _shootingWeapon = shootingWeapon;
         }
-        if(!throwingWeapon.empty)
+        if(!throwingWeapon.empty && throwingWeapon != null)
         {
             throwable = true;
             _throwingWeapon = throwingWeapon;
         }
-        if(!meleeWeapon.empty)
+        if(!meleeWeapon.empty && meleeWeapon != null)
         {
             hitWithable = true;
             _meleeWeapon = meleeWeapon;
@@ -49,32 +58,39 @@ public class Weapon : MonoBehaviour
 
     public void UpdateTimers(float timeScale)
     {
-        _shootingWeapon.UpdateShootableTimers(timeScale);
-        _meleeWeapon.UpdateMeleeTimers(timeScale);
-        _throwingWeapon.UpdateThrowingTimers(timeScale);
+        if(shootable)
+            _shootingWeapon.UpdateShootableTimers(timeScale);
+        if(hitWithable)
+            _meleeWeapon.UpdateMeleeTimers(timeScale);
+        if(throwable)
+            _throwingWeapon.UpdateThrowingTimers(timeScale);
     }
+    ///<summary>The Abstract override class. Do not use as input, use PrimaryFire instead</summary>
     public virtual void PrimaryAttack()
     {
         if(_shootingWeapon.FireAmmo())
         {
+            Debug.Log("Shooted");
             RaycastHit hit;
             bool reachedTarget = _shootingWeapon.Bulletcast(attackOrigin, attackDirection, out hit, _playerMask);
             if(reachedTarget)
             {
-                GameObject hitObject = hit.transform.GetComponent<GameObject>();
+                GameObject hitObject = hit.transform.gameObject;
+                Debug.Log(hit.transform.gameObject);
                 ApplyDamageInterfaces(hitObject);
             }
             //Do stuff to target; Implement the interfaces
         }
         return;
     }
+    ///<summary>The Abstract override class. Do not use as input, use MeleeFire instead</summary>
     public virtual void MeleeAttack()
     {
         RaycastHit meleeHit;
         bool reachedTarget = _meleeWeapon.Meleecast(attackOrigin, attackDirection, out meleeHit, _playerMask);
         if(reachedTarget)
         {
-            GameObject hitObject = meleeHit.transform.GetComponent<GameObject>();
+            GameObject hitObject = meleeHit.transform.gameObject;
             ApplyDamageInterfaces(hitObject);
             IWackable wackable = hitObject.GetComponent<IWackable>();
             if(wackable != null)
@@ -86,6 +102,7 @@ public class Weapon : MonoBehaviour
         //Do stuff to target
         return;
     }
+    ///<summary>The Abstract override class. Do not use as input, use ThrowFire instead</summary>
     public virtual void ThrowAttack()
     {
         _throwingWeapon.Throw(attackOrigin, attackDirection, out isAvaliable);
@@ -95,8 +112,10 @@ public class Weapon : MonoBehaviour
     //This section focuses on the unchangeable input handling
     public void PrimaryFire()
     {
+        Debug.Log("PrimaryFire");
         if(shootable)
         {
+            Debug.Log("Should Fire");
             if(_shootingWeapon.canFire)
                 PrimaryAttack();
         }
@@ -149,5 +168,9 @@ public class Weapon : MonoBehaviour
     public void SetBaseDamage(int newBaseDamage)
     {
         this.baseDamage = newBaseDamage;
+    }
+    public bool _autoFire
+    {
+        get{return this.autoFire;}
     }
 }

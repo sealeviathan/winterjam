@@ -102,7 +102,7 @@ public class Player : BaseEntity
         curAirVector = new Vector3();
         lastMoveVector = new Vector3();
 
-        inventory = new PlayerInventory();
+        inventory = new PlayerInventory(new List<Weapon>());
     }
 
     // Update is called once per frame
@@ -119,12 +119,38 @@ public class Player : BaseEntity
             {
                 Jump(jumpSpeed);
             }
+            //Weapon inputs
+            float mouseScroll = Input.GetAxis("Mouse ScrollWheel");
+            if(mouseScroll != 0)
+            {
+                
+            }
+            if(inventory.getCurrentWeapon() != null)
+                curWeapon = inventory.getCurrentWeapon();
+            if(curWeapon != null)
+            {
+                curWeapon.attackOrigin = cam.transform.position;
+                curWeapon.attackDirection = cam.transform.forward;
+                curWeapon.UpdateTimers(Time.deltaTime);
+                if(curWeapon._autoFire)
+                {
+                    if(Input.GetButton("Fire1"))
+                    {
+                        curWeapon.PrimaryFire();
+                    }
+                }
+                else
+                {
+                    if(Input.GetButtonDown("Fire1"))
+                    {
+                        curWeapon.PrimaryFire();
+                    }
+                }
+            }
+            //End weapon inputs
             crouching = CrouchCheck();
             running = SprintCheck();
-            
         }
-        
-        
     }
     private void FixedUpdate()
     {
@@ -362,6 +388,10 @@ public class Player : BaseEntity
     public void GiveWeapon(Weapon weapon)
     {
         inventory.AddWeapon(weapon);
+    }
+    public void TakeWeapon(Weapon weapon)
+    {
+        inventory.removeFromInventory(weapon);
     }
     bool CheckSideArray(Vector3[] origins, Vector3 direction, out bool[] boolHits, out RaycastHit[] rayHits)
     {

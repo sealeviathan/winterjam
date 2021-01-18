@@ -1,21 +1,29 @@
 ﻿using UnityEngine;
-
-public class ShootingWeapon
+[CreateAssetMenu(fileName = "New ShootingWeapon", menuName = "Items/Weapon Pieces/Shooting")]
+public class ShootingWeapon : ScriptableObject
 {
     //Specifically, shootable members
+    [SerializeField]
     GameObject projectile;
     bool reloading;
     public bool canFire;
+    [SerializeField]
     int curAmmo;
+    [SerializeField]
     int clipSize;
+    [SerializeField]
     int reservesAmmo;
+    [SerializeField]
     int ammoConsumptionRate;
+    [SerializeField]
     float fireCooldown;
     float curFireCooldown;
+    [SerializeField]
     float reloadTime;
     float curReloadTime;
+    [SerializeField]
     float effectiveDistance;
-    public bool projectileWeapon;
+    bool projectileWeapon;
 
     public bool empty; //Use this bad boy if part is unused
     public ShootingWeapon()
@@ -110,8 +118,10 @@ public class ShootingWeapon
     }
     public bool FireAmmo()
     {
+        Debug.Log("Ammo fired");
         if(curAmmo - ammoConsumptionRate >= 0)
         {
+            curFireCooldown = fireCooldown;
             curAmmo -= ammoConsumptionRate;
             return true;
         }

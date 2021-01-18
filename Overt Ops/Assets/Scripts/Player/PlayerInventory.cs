@@ -4,64 +4,25 @@ using UnityEngine;
 
 public struct PlayerInventory
 {
-    Weapon[] weapons;
-    bool updateTakeover;
+    List<Weapon> weapons;
     int curWepIndex;
+    public PlayerInventory(List<Weapon> curWeapons)
+    {
+        weapons = curWeapons;
+        curWepIndex = 0;
+    }
     public int _curWepIndex
     {
         get{return curWepIndex;}
     }
-    public void UpdateAvaliable()
-    {
-        if(!updateTakeover)
-            weapons = regenerateInventory();
-        updateTakeover = false;
-    }
-    Weapon[] regenerateInventory(Weapon additionalWep = default(Weapon))
-    {
-        Weapon[] curWeapons = weapons;
-        Weapon[] newWeapons;
-        int maxLength = curWeapons.Length;
-        int count = 0;
-        bool newWep = false;
-        if(additionalWep != default(Weapon))
-        {
-            count++;
-            newWep = true;
-        }
-        for(int i = 0; i < maxLength;i++)
-        {
-            if(curWeapons[i].isAvaliable)
-            {
-                count++;
-            }
-        }
-        if(count == maxLength)
-            return curWeapons;
-
-        int avaliableCount = 0;
-        newWeapons = new Weapon[count];
-        
-        for(int i = 0; i < maxLength; i++)
-        {
-            if(newWep && i == 0)
-            {
-                newWeapons[0] = additionalWep;
-                additionalWep = default(Weapon);
-            }
-            else if(curWeapons[i].isAvaliable)
-            {
-                avaliableCount++;
-                newWeapons[i] = curWeapons[i];
-            }
-        }
     
-        return newWeapons;
+    public void removeFromInventory(Weapon weapon)
+    {
+        weapons.Remove(weapon);
     }
     public void AddWeapon(Weapon weapon)
     {
-        regenerateInventory(weapon);
-        updateTakeover = true;
+        weapons.Add(weapon);
     }
     public Weapon getCurrentWeapon()
     {
@@ -74,6 +35,29 @@ public struct PlayerInventory
     public void setWeaponIndex(int i)
     {
         this.curWepIndex = i;
+    }
+    public void ScrollInventory(float scrollWheel)
+    {
+        if(scrollWheel > 0.99f)
+        {
+            curWepIndex += 1;
+            if(curWepIndex > size)
+            {
+                curWepIndex = 0;
+            }
+        }
+        else if(scrollWheel < 0.99f)
+        {
+            curWepIndex -= 1;
+            if(curWepIndex < 0)
+            {
+                curWepIndex = size;
+            }
+        }
+    }
+    public int size
+    {
+        get{return weapons.Count-1;}
     }
     
 }
