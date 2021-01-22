@@ -74,6 +74,11 @@ public class Player : BaseEntity
     float crouchScale = 0.75f;
     PlayerInventory inventory;
     Weapon curWeapon;
+    public GameObject weaponVisuals;
+    MeshFilter weaponModel;
+    MeshRenderer weaponMat;
+    //Make a thing so that you can get a model from the weapon, and use it to replace the placeholder
+    //Deagle!
     //Make a separate player input class to deal with all of the input specific values and methods.
     // Start is called before the first frame update
     void Start()
@@ -95,6 +100,9 @@ public class Player : BaseEntity
         alive = true;
 
         hand = gameObject.transform.Find("ItemMount");
+        weaponVisuals = hand.GetChild(0).gameObject;
+        weaponModel = weaponVisuals.GetComponent<MeshFilter>();
+        weaponMat = weaponVisuals.GetComponent<MeshRenderer>();
         baseHandHeight = hand.transform.localPosition.y;
 
         footAngle = Vector3.zero;
@@ -108,7 +116,17 @@ public class Player : BaseEntity
     // Update is called once per frame
     void Update()
     {   
-        
+        //weaponVisuals.transform.position = curWeapon.wepVisual.pos;
+        //weaponVisuals.transform.localEulerAngles = curWeapon.wepVisual.rot;
+        //weaponVisuals.transform.localScale = curWeapon.wepVisual.scale;
+        if(curWeapon != null)
+        {
+            weaponVisuals.transform.position = hand.transform.position + curWeapon.wepVisual.pos;
+            weaponVisuals.transform.localEulerAngles = curWeapon.wepVisual.rot;
+            weaponVisuals.transform.localScale = curWeapon.wepVisual.scale;
+            weaponModel.mesh = curWeapon.wepVisual.defaultMesh;
+            weaponMat.material = curWeapon.wepVisual.baseMaterial;
+        }
         if(alive)
         {
             if(jumpCooldown > 0)
@@ -123,10 +141,13 @@ public class Player : BaseEntity
             float mouseScroll = Input.GetAxis("Mouse ScrollWheel");
             if(mouseScroll != 0)
             {
-                
+                inventory.ScrollInventory(mouseScroll);
             }
-            if(inventory.getCurrentWeapon() != null)
-                curWeapon = inventory.getCurrentWeapon();
+            if(inventory.size > 0)
+            {
+                if(inventory.getCurrentWeapon() != null)
+                    curWeapon = inventory.getCurrentWeapon();
+            }
             if(curWeapon != null)
             {
                 curWeapon.attackOrigin = cam.transform.position;

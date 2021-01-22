@@ -55,6 +55,7 @@ public class MeleeWeapon : ScriptableObject
     public bool Meleecast(Vector3 origin,Vector3 direction,out RaycastHit meleeHit, LayerMask _playerMask)
     {
         meleeHit = default(RaycastHit);
+        this.curMeleeCooldown = meleeCooldown;
         if(Physics.SphereCast(origin,meleeRadius,direction,out meleeHit, effectiveDistance, _playerMask))
         {
             return true;

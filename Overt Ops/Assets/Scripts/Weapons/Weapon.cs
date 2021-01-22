@@ -29,6 +29,7 @@ public class Weapon : ScriptableObject
     bool hitWithable = false;
     [SerializeField]
     bool throwable = false;
+    public WeaponAppearance wepVisual;
 
 
     public Weapon(int baseDamage, LayerMask _playerMask, ShootingWeapon shootingWeapon, ThrowingWeapon throwingWeapon, 

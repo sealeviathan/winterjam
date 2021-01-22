@@ -49,15 +49,16 @@ public struct PlayerInventory
         else if(scrollWheel < 0.99f)
         {
             curWepIndex -= 1;
-            if(curWepIndex < 0)
+            if(curWepIndex < 0 && size > 0)
             {
-                curWepIndex = size;
+                curWepIndex = size - 1;
             }
         }
+        Debug.Log(curWepIndex);
     }
     public int size
     {
-        get{return weapons.Count-1;}
+        get{return weapons.Count;}
     }
     
 }

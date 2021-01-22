@@ -10,21 +10,21 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 699a803e836db2c4b839de5096b5f915, type: 3}
-  m_Name: Pistol
+  m_Name: Slugger
   m_EditorClassIdentifier: 
-  baseDamage: 10
+  baseDamage: 15
   _playerMask:
     serializedVersion: 2
     m_Bits: 55
   attackOrigin: {x: -18.610538, y: 2.6, z: 12.94351}
-  attackDirection: {x: -0.9911422, y: 0.09410818, z: -0.09370594}
+  attackDirection: {x: -0.18666175, y: 0.9802712, z: -0.0650062}
   isAvaliable: 1
   autoFire: 0
-  stunTime: 0.5
-  _shootingWeapon: {fileID: 11400000, guid: 3f0bb5ecc7e15614cb4d289e5c0121e2, type: 2}
-  _throwingWeapon: {fileID: 0}
-  _meleeWeapon: {fileID: 11400000, guid: b1a2f32a20a3493458d6924117200e27, type: 2}
-  shootable: 1
+  stunTime: 1
+  _shootingWeapon: {fileID: 0}
+  _throwingWeapon: {fileID: 11400000, guid: 7418078e7f57ea342b7a68085356d213, type: 2}
+  _meleeWeapon: {fileID: 11400000, guid: 27faa059ac23bb14cb2d9d51499cca25, type: 2}
+  shootable: 0
   hitWithable: 1
-  throwable: 0
-  wepVisual: {fileID: 11400000, guid: ff0b516221c5f0f439683a76f821b068, type: 2}
+  throwable: 1
+  wepVisual: {fileID: 11400000, guid: 0069442961c3a714f8da1f09af7edda4, type: 2}

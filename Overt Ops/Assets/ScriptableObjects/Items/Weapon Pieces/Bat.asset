@@ -9,16 +9,12 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 37f582c790936fd4e83c605b1673b2dc, type: 3}
-  m_Name: Pistol
+  m_Script: {fileID: 11500000, guid: 3468bf35bd2282a4ca5233e38d1efcf9, type: 3}
+  m_Name: Bat
   m_EditorClassIdentifier: 
-  projectile: {fileID: 0}
-  canFire: 1
-  curAmmo: 5
-  clipSize: 10
-  reservesAmmo: 0
-  ammoConsumptionRate: 1
-  fireCooldown: 0.5
-  reloadTime: 2.5
-  effectiveDistance: 50
+  canMelee: 1
+  meleeRadius: 2
+  meleeCooldown: 1
+  effectiveDistance: 1
+  wackPower: 10
   empty: 0
