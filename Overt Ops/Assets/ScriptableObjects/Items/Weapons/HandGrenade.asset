@@ -16,9 +16,9 @@ MonoBehaviour:
   _playerMask:
     serializedVersion: 2
     m_Bits: 55
-  attackOrigin: {x: 0, y: 0, z: 0}
-  attackDirection: {x: 0, y: 0, z: 0}
-  isAvaliable: 1
+  attackOrigin: {x: 8.935342, y: 2.6, z: 27.428232}
+  attackDirection: {x: -0.65932846, y: -0.26892042, z: 0.70211667}
+  isAvaliable: 0
   autoFire: 0
   stunTime: 3
   _shootingWeapon: {fileID: 0}
@@ -27,3 +27,4 @@ MonoBehaviour:
   shootable: 0
   hitWithable: 0
   throwable: 1
+  wepVisual: {fileID: 11400000, guid: 5c2f1f9d899f8fb4da42afec1747ab30, type: 2}

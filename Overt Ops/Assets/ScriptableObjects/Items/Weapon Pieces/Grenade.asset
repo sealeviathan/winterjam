@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   thrownObject: {fileID: 3785870019184567519, guid: 90a8b6550e9393444b5e979bc62feb07,
     type: 3}
-  thrownVelocityMult: 5
+  thrownVelocityMult: 20
   thrownArcMult: 1
   effectiveDistance: 10
   empty: 0

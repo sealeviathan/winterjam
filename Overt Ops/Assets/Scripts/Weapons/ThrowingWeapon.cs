@@ -38,8 +38,12 @@ public class ThrowingWeapon : ScriptableObject
         //and it will throw straight.
         if(thrownObject != null)
         {
-            isAvaliable = false;
+            
             Vector3 throwVector = direction * thrownVelocityMult + Vector3.up * thrownArcMult;
+            Vector3 unitThrow = throwVector * (1/throwVector.magnitude);
+            GameObject clone = Instantiate(thrownObject, origin + unitThrow, Quaternion.identity) as GameObject;
+            clone.GetComponent<Rigidbody>().velocity = throwVector;
+            isAvaliable = false;
         }
         else
         {
