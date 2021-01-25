@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Bat
   m_EditorClassIdentifier: 
   canMelee: 1
-  meleeRadius: 2
+  meleeRadius: 1
   meleeCooldown: 1
   effectiveDistance: 1
   wackPower: 10

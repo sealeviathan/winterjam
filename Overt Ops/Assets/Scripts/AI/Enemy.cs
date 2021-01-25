@@ -5,6 +5,7 @@ using UnityEngine;
 public class Enemy : BaseEntity
 {
     // Start is called before the first frame update
+    public int personalHealth = 100;
     float speed = 10f;
     public Vector3 target;
     public Vector3[] waypoints;
@@ -15,7 +16,8 @@ public class Enemy : BaseEntity
 
     void Start()
     {
-        health = 10;
+        maxHealth=personalHealth;
+        health = maxHealth;
         target = waypoints[0];
         agent = GetComponent<UnityEngine.AI.NavMeshAgent>();
     }

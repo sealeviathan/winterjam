@@ -56,10 +56,14 @@ public class MeleeWeapon : ScriptableObject
     {
         meleeHit = default(RaycastHit);
         this.curMeleeCooldown = meleeCooldown;
-        
-        if(Physics.SphereCast(origin,meleeRadius,direction,out meleeHit, effectiveDistance, _playerMask))
+        if(Physics.Raycast(origin, direction, out meleeHit, effectiveDistance, _playerMask))
         {
-            Debug.Log(meleeHit);
+            Debug.Log(meleeHit.transform);
+            return true;
+        }
+        else if(Physics.SphereCast(origin,meleeRadius,direction,out meleeHit, effectiveDistance, _playerMask))
+        {
+            Debug.Log(meleeHit.transform);
             return true;
         }
         return false;

@@ -2,8 +2,9 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class BaseEntity : MonoBehaviour, IDamageable, IKillable, IStabbable, IStaggerable
+public class BaseEntity : MonoBehaviour, IDamageable, IKillable, IStabbable, IStaggerable, IWackable
 {
+    
     public int health {get; set;}
     public int maxHealth {get; set;}
 
@@ -36,5 +37,13 @@ public class BaseEntity : MonoBehaviour, IDamageable, IKillable, IStabbable, ISt
     public virtual void FallDown()
     {
 
+    }
+    public virtual void Wack(Vector3 direction, float force)
+    {
+        Rigidbody selfRB = transform.GetComponent<Rigidbody>();
+        if(selfRB != null)
+        {
+            selfRB.velocity = direction * force;
+        }
     }
 }

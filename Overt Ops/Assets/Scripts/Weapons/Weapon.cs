@@ -77,6 +77,7 @@ public class Weapon : ScriptableObject
             if(reachedTarget)
             {
                 GameObject hitObject = hit.transform.gameObject;
+                DecalManager.decalManager.SpawnDecal(hit.point, hit.normal);
                 Debug.Log(hit.transform.gameObject);
                 ApplyDamageInterfaces(hitObject);
             }

@@ -16,10 +16,10 @@ MonoBehaviour:
   _playerMask:
     serializedVersion: 2
     m_Bits: 55
-  attackOrigin: {x: -18.610538, y: 2.6, z: 12.94351}
-  attackDirection: {x: -0.9911422, y: 0.09410818, z: -0.09370594}
+  attackOrigin: {x: -6.4698243, y: 2.6, z: 20.956783}
+  attackDirection: {x: 0, y: 1.0000001, z: -0.000000074505806}
   isAvaliable: 1
-  autoFire: 0
+  autoFire: 1
   stunTime: 0.5
   _shootingWeapon: {fileID: 11400000, guid: 3f0bb5ecc7e15614cb4d289e5c0121e2, type: 2}
   _throwingWeapon: {fileID: 0}
