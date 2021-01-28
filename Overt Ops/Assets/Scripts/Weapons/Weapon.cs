@@ -55,6 +55,22 @@ public class Weapon : ScriptableObject
         this.stunTime = stunTime;
         this.autoFire = autoFire;
         this.isAvaliable = false;
+        Debug.Log("Constructor runs");
+    }
+
+    public ShootingWeapon CloneShootingComponent()
+    {
+        ShootingWeapon toReturn = Instantiate(_shootingWeapon) as ShootingWeapon;
+        Debug.Log(toReturn);
+        return toReturn;
+    }
+
+    public void SetComponent<T> (T compType)
+    {
+        if(compType.GetType() == typeof(ShootingWeapon))
+        {
+            _shootingWeapon = compType as ShootingWeapon;
+        }
     }
 
     public void UpdateTimers(float timeScale)
@@ -77,7 +93,7 @@ public class Weapon : ScriptableObject
             if(reachedTarget)
             {
                 GameObject hitObject = hit.transform.gameObject;
-                DecalManager.decalManager.SpawnDecal(hit.point, hit.normal);
+                DecalManager.decalManager.SpawnDecal(hit.point, -hit.normal);
                 Debug.Log(hit.transform.gameObject);
                 ApplyDamageInterfaces(hitObject);
             }
@@ -143,6 +159,13 @@ public class Weapon : ScriptableObject
     {
         if(throwable)
             ThrowAttack();
+    }
+    public void Reload()
+    {
+        if(shootable)
+        {
+            _shootingWeapon.Reload();
+        }
     }
     public void ApplyDamageInterfaces(GameObject hitObject)
     {

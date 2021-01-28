@@ -55,6 +55,10 @@ public class ShootingWeapon : ScriptableObject
     {
         get {return this.fireCooldown;}
     }
+    public bool _reloading
+    {
+        get {return this.reloading;}
+    }
 
     public void UpdateShootableTimers(float timeScale)
     {

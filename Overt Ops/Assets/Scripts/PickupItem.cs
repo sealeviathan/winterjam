@@ -13,11 +13,14 @@ public class PickupItem : MonoBehaviour
     public Types thisType;
     [SerializeField]
     Weapon possibleWeapon = null;
+    [SerializeField]
+    Weapon constWeapon;
     float initialHeight;
     // Start is called before the first frame update
     //Need to autofetch the texture for the mesh renderer
     void Start()
     {
+        possibleWeapon = Instantiate(constWeapon) as Weapon;
         if(possibleWeapon != null)
         {
             thisType = Types.Weapon;
@@ -51,5 +54,13 @@ public class PickupItem : MonoBehaviour
             }
             Destroy(gameObject);
         }
+    }
+    public Weapon GetCloneWeapon()
+    {
+        return this.possibleWeapon;
+    }
+    public Weapon GetConstWeapon()
+    {
+        return this.constWeapon;
     }
 }

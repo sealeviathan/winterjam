@@ -4494,6 +4494,7 @@ MonoBehaviour:
   bobSpeed: 1
   thisType: 0
   possibleWeapon: {fileID: 11400000, guid: b8a43826bb18a814ca700def6001e970, type: 2}
+  constWeapon: {fileID: 11400000, guid: b8a43826bb18a814ca700def6001e970, type: 2}
 --- !u!65 &686651845
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -6332,7 +6333,7 @@ GameObject:
   - component: {fileID: 1153030609}
   - component: {fileID: 1153030608}
   m_Layer: 0
-  m_Name: pistolPickup
+  m_Name: grenadePickup
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -6416,6 +6417,7 @@ MonoBehaviour:
   bobSpeed: 1
   thisType: 0
   possibleWeapon: {fileID: 11400000, guid: f8106d970240cba4ab7d6ba6557e9745, type: 2}
+  constWeapon: {fileID: 11400000, guid: f8106d970240cba4ab7d6ba6557e9745, type: 2}
 --- !u!65 &1153030611
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -10691,6 +10693,7 @@ MonoBehaviour:
   bobSpeed: 1
   thisType: 0
   possibleWeapon: {fileID: 11400000, guid: 74ebc7266f6e1cc4180efec600a78969, type: 2}
+  constWeapon: {fileID: 11400000, guid: 74ebc7266f6e1cc4180efec600a78969, type: 2}
 --- !u!65 &1711504580
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -11192,6 +11195,51 @@ Mesh:
     offset: 0
     size: 0
     path: 
+--- !u!1 &1806497935
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1806497936}
+  - component: {fileID: 1806497937}
+  m_Layer: 0
+  m_Name: WeaponsInit
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1806497936
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1806497935}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -14.885299, y: 2.39, z: 12.609196}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 11
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1806497937
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1806497935}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1722c0c5ffd185943aeb357c7373d003, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  weaponPickups:
+  - {fileID: 1711504576}
 --- !u!43 &1849363925
 Mesh:
   m_ObjectHideFlags: 0
@@ -14405,6 +14453,7 @@ MonoBehaviour:
   poolObject: {fileID: 6360243798776212682, guid: b3e50a08b7118e44e8c650251580966f,
     type: 3}
   poolCount: 50
+  posOffsetMult: 0.001
 --- !u!4 &1996059685
 Transform:
   m_ObjectHideFlags: 0

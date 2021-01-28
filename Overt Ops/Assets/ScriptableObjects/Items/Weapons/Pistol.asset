@@ -16,8 +16,8 @@ MonoBehaviour:
   _playerMask:
     serializedVersion: 2
     m_Bits: 55
-  attackOrigin: {x: -6.4698243, y: 2.6, z: 20.956783}
-  attackDirection: {x: 0, y: 1.0000001, z: -0.000000074505806}
+  attackOrigin: {x: -8.965692, y: 2.6, z: 14.135455}
+  attackDirection: {x: 0.39060184, y: 0.8443278, z: -0.36679828}
   isAvaliable: 1
   autoFire: 1
   stunTime: 0.5

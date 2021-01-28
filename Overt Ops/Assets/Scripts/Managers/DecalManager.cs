@@ -8,6 +8,7 @@ public class DecalManager : MonoBehaviour
     public Queue<GameObject> decalPool;
     public GameObject poolObject;
     public int poolCount = 50;
+    public float posOffsetMult = 0.01f;
     private void Awake()
     {
         decalManager = this;
@@ -26,8 +27,8 @@ public class DecalManager : MonoBehaviour
     public void SpawnDecal(Vector3 pos, Vector3 direction)
     {
         GameObject poolObj = decalPool.Dequeue();
-        poolObj.transform.position = pos;
         poolObj.transform.forward = direction;
+        poolObj.transform.position = pos - (direction * posOffsetMult);
         //poolObj.transform.position += transform.forward; 
         poolObj.SetActive(true);
         decalPool.Enqueue(poolObj);

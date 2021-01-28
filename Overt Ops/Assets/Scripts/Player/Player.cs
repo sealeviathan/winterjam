@@ -167,6 +167,10 @@ public class Player : BaseEntity
                         curWeapon.PrimaryFire();
                     }
                 }
+                if(Input.GetButtonDown("Reload"))
+                {
+                    curWeapon.Reload();
+                }
             }
             //End weapon inputs
             crouching = CrouchCheck();

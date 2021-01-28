@@ -14,11 +14,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   projectile: {fileID: 0}
   canFire: 1
-  curAmmo: 39
+  curAmmo: 10
   clipSize: 10
-  reservesAmmo: 0
+  reservesAmmo: 20
   ammoConsumptionRate: 1
-  fireCooldown: 0.1
+  fireCooldown: 0.5
   reloadTime: 2.5
   effectiveDistance: 100
   empty: 0

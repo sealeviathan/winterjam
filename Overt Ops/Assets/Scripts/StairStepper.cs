@@ -34,15 +34,22 @@ public class StairStepper : MonoBehaviour
         int i = 0;
         groundCP = default(ContactPoint);
         bool found = false;
-        foreach(ContactPoint contact in allCPs)
+        if(allCPs == null)
         {
-            i++;
-            //Pointing with some up direction
-            if(contact.normal.y > 0.0001f && (found == false || contact.normal.y > groundCP.normal.y))
+            return false;
+        }
+        else
+        {
+            foreach(ContactPoint contact in allCPs)
             {
-                groundContactIndex = i;
-                groundCP = contact;
-                found = true;
+                i++;
+                //Pointing with some up direction
+                if(contact.normal.y > 0.0001f && (found == false || contact.normal.y > groundCP.normal.y))
+                {
+                    groundContactIndex = i;
+                    groundCP = contact;
+                    found = true;
+                }
             }
         }
         return found;
@@ -78,13 +85,11 @@ public class StairStepper : MonoBehaviour
         //( 1 ) Check if the contact point normal matches that of a stair (y close to 0)
         if(Mathf.Abs(stepTestCP.normal.y) >= .9f)
         {
-            Debug.Log("Not stairy enough");
             return false;
         }
         //( 2 ) Make sure the contact point is low enough to be a stair
         if( !(stepTestCP.point.y - groundCP.point.y < maxStepHeight) )
         {
-            Debug.Log("Not low enough");
             return false;
         }
         //( 3 ) Check to see if there's actually a place to step in front of us
